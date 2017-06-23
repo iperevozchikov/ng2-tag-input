@@ -6,6 +6,7 @@ import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/mapTo';
 
 @Component({
     selector: 'app',
@@ -36,10 +37,10 @@ export class Home {
     dragAndDropStrings = ['CoffeScript', 'Scala.js'];
 
     public requestAutocompleteItems = (text: string): Observable<Response> => {
-        const url = `https://api.github.com/search/repositories?q=${text}`;
+        const url = `https://api.github.com/search/repositories?q=${text}&per_page=100`;
         return this.http
             .get(url)
-            .map(data => data.json().items.map(item => item.full_name));
+            .map(data =>  data.json().items.concat(data.json().items).map((item, idx) => item.full_name + idx));
     };
 
     public options = {

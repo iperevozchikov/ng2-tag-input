@@ -1,4 +1,5 @@
 export * from './dropdown';
+export * from './virtualized-dropdown';
 export * from './icon';
 export * from './tag-input-form';
 export * from './tag';

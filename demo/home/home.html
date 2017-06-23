@@ -1,6 +1,23 @@
 <main>
     <div class="home-container">
         <div>
+            <h3>Tags accepting only items from an autocomplete using a remote endpoint</h3>
+            <tag-input [ngModel]="[]"
+                       [placeholder]="'Enter a new repo'"
+                       [onTextChangeDebounce]="500"
+                       [secondaryPlaceholder]="'Search in Github'"
+                       [onlyFromAutocomplete]="true">
+                <tag-input-virtualized-dropdown
+                    [autocompleteObservable]="requestAutocompleteItems"
+                >
+                    <ng-template let-item="item" let-index="index">
+                        {{ item.display }}
+                    </ng-template>
+                </tag-input-virtualized-dropdown>
+            </tag-input>
+        </div>
+
+        <div>
             <h3>Simple Input with two items</h3>
             <tag-input [(ngModel)]="items"
                        (onSelect)="onSelect($event)"
@@ -97,7 +114,7 @@
                     </ng-template>
                 </tag-input-dropdown>
             </tag-input>
-        </div >
+        </div>
 
         <div>
             <h3>Tags dropdown with last provided</h3>

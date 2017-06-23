@@ -3,12 +3,14 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { Ng2DropdownModule } from 'ng2-material-dropdown';
+import { VirtualScrollModule } from 'angular2-virtual-scroll';
 
 import {
     TagInputComponent,
     TagInputForm,
     DeleteIconComponent,
     TagInputDropdown,
+    TagInputVirtualizedDropdown,
     TagComponent,
     TagRipple
 } from './components';
@@ -20,7 +22,8 @@ import { HighlightPipe } from './core';
         CommonModule,
         ReactiveFormsModule,
         FormsModule,
-        Ng2DropdownModule
+        Ng2DropdownModule,
+        VirtualScrollModule
     ],
     declarations: [
         TagInputComponent,
@@ -29,6 +32,7 @@ import { HighlightPipe } from './core';
         TagComponent,
         HighlightPipe,
         TagInputDropdown,
+        TagInputVirtualizedDropdown,
         TagRipple
     ],
     exports: [
@@ -38,6 +42,7 @@ import { HighlightPipe } from './core';
         TagComponent,
         HighlightPipe,
         TagInputDropdown,
+        TagInputVirtualizedDropdown,
         TagRipple
     ]
 })

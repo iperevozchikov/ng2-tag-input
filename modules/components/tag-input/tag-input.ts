@@ -42,6 +42,7 @@ import {
 import {
     TagInputForm,
     TagInputDropdown,
+    TagInputVirtualizedDropdown,
     TagComponent
 } from '../../components';
 
@@ -334,7 +335,9 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
     /**
      * @name dropdown
      */
-    @ContentChild(TagInputDropdown) public dropdown: TagInputDropdown;
+    @ContentChild(TagInputDropdown) private _dropdown: TagInputDropdown;
+
+    @ContentChild(TagInputVirtualizedDropdown) private _virtualizedDropdown: TagInputVirtualizedDropdown;
 
     /**
      * @name template
@@ -422,6 +425,10 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
     @HostBinding('attr.tabindex')
     public get tabindexAttr(): string {
         return this.tabindex !== undefined ? '-1' : undefined;
+    }
+
+    public get dropdown(): TagInputDropdown | TagInputVirtualizedDropdown | undefined {
+        return !this._virtualizedDropdown ? (!this._dropdown ? undefined : this._dropdown) : this._virtualizedDropdown;
     }
 
     constructor(private renderer: Renderer2) {
