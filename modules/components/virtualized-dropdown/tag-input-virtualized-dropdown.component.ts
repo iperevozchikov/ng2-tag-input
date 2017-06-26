@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 
 import { Ng2Dropdown, Ng2MenuItem } from 'ng2-material-dropdown';
-import { VirtualScrollComponent } from 'angular2-virtual-scroll';
+import { ChangeEvent, VirtualScrollComponent } from 'angular2-virtual-scroll';
 
 import { TagModel } from '../../core';
 import { TagInputComponent } from '../../components';
@@ -88,7 +88,10 @@ export class TagInputVirtualizedDropdown {
      * @description observable passed as input which populates the autocomplete items
      * @name autocompleteObservable
      */
-    @Input() public autocompleteObservable: (text: string) => Observable<any>;
+    @Input() public autocompleteObservable: (text: string, skip: number, limit: number) => Observable<any>;
+
+
+    @Input() public autocompleteObservableFetchLimit = 100;
 
     /**
      * - desc minimum text length in order to display the autocomplete dropdown
@@ -168,8 +171,7 @@ export class TagInputVirtualizedDropdown {
     }
 
     constructor(
-        @Inject(forwardRef(() => TagInputComponent)) private tagInput: TagInputComponent,
-        private zone: NgZone
+        @Inject(forwardRef(() => TagInputComponent)) private tagInput: TagInputComponent
     ) {}
 
     /**
@@ -190,8 +192,23 @@ export class TagInputVirtualizedDropdown {
             this.tagInput
                 .onTextChange
                 .filter((text: string) => text.trim().length >= this.minimumTextLength)
-                .subscribe(this.getItemsFromObservable);
+                .subscribe((text: string) => this.getItemsFromObservable(text, 0, this.autocompleteObservableFetchLimit));
+
+
+            this.vScroll
+                .end
+                .filter((e: ChangeEvent) => {
+                    return this.autocompleteItems.length > 0 && e.end == this.autocompleteItems.length;
+                })
+                .subscribe(
+                    (e: ChangeEvent) => this.getItemsFromObservable(
+                        this.tagInput.inputTextValue, this.autocompleteItems.length, this.autocompleteObservableFetchLimit)
+                );
         }
+
+        this.dropdown.onShow.subscribe(() => {
+            setTimeout(() => this.vScroll.refresh(), 150);
+        });
     }
 
     /**
@@ -354,19 +371,25 @@ export class TagInputVirtualizedDropdown {
      */
     private resetItems = (): void => {
         this.items = [];
+
+        if (this.autocompleteObservable) {
+            this.autocompleteItems = [];
+        }
     }
 
     /**
      * @name populateItems
      * @param data
      */
-    private populateItems(data: any): TagInputVirtualizedDropdown {
-        this.autocompleteItems = data.map(item => {
+    private populateItems(data: any, concat: boolean): TagInputVirtualizedDropdown {
+        const formattedItems = data.map(item => {
             return typeof item === 'string' ? {
                 [this.displayBy]: item,
                 [this.identifyBy]: item
             } : item;
         });
+
+        this.autocompleteItems = concat ? [...this.autocompleteItems].concat(formattedItems) : formattedItems;
 
         return this;
     }
@@ -375,15 +398,15 @@ export class TagInputVirtualizedDropdown {
      * @name getItemsFromObservable
      * @param text
      */
-    private getItemsFromObservable = (text: string): void => {
+    private getItemsFromObservable = (text: string, skip: number, limit: number): void => {
         this.setLoadingState(true);
 
-        this.autocompleteObservable(text)
+        this.autocompleteObservable(text, skip, limit)
             .subscribe(data => {
                 // hide loading animation
                 this.setLoadingState(false)
                     // add items
-                    .populateItems(data)
+                    .populateItems(data, skip > 0)
                     // show the dropdown
                     .show();
 
