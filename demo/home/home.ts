@@ -36,6 +36,13 @@ export class Home {
     dragAndDropObjects = [{display: 'Javascript', value: 'Javascript'}, {display: 'Typescript', value: 'Typescript'}];
     dragAndDropStrings = ['CoffeScript', 'Scala.js'];
 
+    public requestAutocompleteItemsWithPagination = (text: string, skip: number, limit: number): Observable<Response> => {
+        const url = `https://api.github.com/search/repositories?q=${text}&page=${skip / limit}&per_page=100`;
+        return this.http
+            .get(url)
+            .map(data =>  data.json().items.concat(data.json().items).map((item, idx) => item.full_name + idx));
+    };
+
     public requestAutocompleteItems = (text: string): Observable<Response> => {
         const url = `https://api.github.com/search/repositories?q=${text}&per_page=100`;
         return this.http
@@ -125,5 +132,9 @@ export class Home {
             .of(undefined)
             .filter(() => confirm)
             .mapTo(tag);
+    }
+
+    matchingFn(): boolean {
+        return true;
     }
 }

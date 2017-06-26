@@ -8,7 +8,8 @@
                        [secondaryPlaceholder]="'Search in Github'"
                        [onlyFromAutocomplete]="true">
                 <tag-input-virtualized-dropdown
-                    [autocompleteObservable]="requestAutocompleteItems"
+                    [autocompleteObservable]="requestAutocompleteItemsWithPagination"
+                    [matchingFn]="matchingFn"
                 >
                     <ng-template let-item="item" let-index="index">
                         {{ item.display }}
