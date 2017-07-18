@@ -4,7 +4,7 @@
         "noImplicitAny": false,
         "noEmitOnError": true,
         "strictNullChecks": false,
-        "module": "es2015",
+        "module": "commonjs",
         "outDir": "dist",
         "target": "es5",
         "emitDecoratorMetadata": true,
