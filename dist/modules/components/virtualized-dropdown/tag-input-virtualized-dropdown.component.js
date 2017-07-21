@@ -26,6 +26,7 @@ var angular2_virtual_scroll_1 = require("angular2-virtual-scroll");
 var components_1 = require("../../components");
 require("rxjs/add/operator/map");
 require("rxjs/add/operator/filter");
+require("rxjs/add/operator/mergeMap");
 var TagInputVirtualizedDropdown = (function () {
     function TagInputVirtualizedDropdown(tagInput) {
         var _this = this;
@@ -127,13 +128,17 @@ var TagInputVirtualizedDropdown = (function () {
             this.tagInput
                 .onTextChange
                 .filter(function (text) { return text.trim().length >= _this.minimumTextLength; })
-                .subscribe(function (text) { return _this.getItemsFromObservable(text, 0, _this.autocompleteObservableFetchLimit); });
-            this.vScroll
-                .end
-                .filter(function (e) {
-                return _this.autocompleteItems.length > 0 && e.end == _this.autocompleteItems.length;
-            })
-                .subscribe(function (e) { return _this.getItemsFromObservable(_this.tagInput.inputTextValue, _this.autocompleteItems.length, _this.autocompleteObservableFetchLimit); });
+                .subscribe(function (text) {
+                return _this.getItemsFromObservable(text, 0, _this.autocompleteObservableFetchLimit);
+            });
+            if (this.totalOfItemsObservable) {
+                this.vScroll
+                    .end
+                    .filter(function (e) { return _this.autocompleteItems.length > 0 && e.end == _this.autocompleteItems.length; })
+                    .flatMap(function (e) { return _this.totalOfItemsObservable(_this.tagInput.inputTextValue); })
+                    .filter(function (total) { return total > _this.autocompleteItems.length + _this.autocompleteObservableFetchLimit; })
+                    .subscribe(function () { return _this.getItemsFromObservable(_this.tagInput.inputTextValue, _this.autocompleteItems.length, _this.autocompleteObservableFetchLimit); });
+            }
         }
         this.dropdown.onShow.subscribe(function () {
             setTimeout(function () { return _this.vScroll.refresh(); }, 150);
@@ -261,6 +266,10 @@ __decorate([
     core_1.Input(),
     __metadata("design:type", Function)
 ], TagInputVirtualizedDropdown.prototype, "autocompleteObservable", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Function)
+], TagInputVirtualizedDropdown.prototype, "totalOfItemsObservable", void 0);
 __decorate([
     core_1.Input(),
     __metadata("design:type", Object)

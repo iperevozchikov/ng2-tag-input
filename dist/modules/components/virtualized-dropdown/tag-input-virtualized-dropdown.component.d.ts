@@ -6,6 +6,7 @@ import { TagInputComponent } from '../../components';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/mergeMap';
 export declare class TagInputVirtualizedDropdown {
     private tagInput;
     dropdown: Ng2Dropdown;
@@ -19,6 +20,7 @@ export declare class TagInputVirtualizedDropdown {
     focusFirstElement: boolean;
     showDropdownIfEmpty: boolean;
     autocompleteObservable: (text: string, skip: number, limit: number) => Observable<any>;
+    totalOfItemsObservable: (text: string) => Observable<number>;
     autocompleteObservableFetchLimit: number;
     minimumTextLength: number;
     displayBy: string;

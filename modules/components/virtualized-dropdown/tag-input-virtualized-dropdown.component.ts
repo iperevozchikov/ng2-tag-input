@@ -22,6 +22,7 @@ import { TagInputComponent } from '../../components';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/mergeMap';
 
 @Component({
     selector: 'tag-input-virtualized-dropdown',
@@ -90,6 +91,7 @@ export class TagInputVirtualizedDropdown {
      */
     @Input() public autocompleteObservable: (text: string, skip: number, limit: number) => Observable<any>;
 
+    @Input() public totalOfItemsObservable: (text: string) => Observable<number>;
 
     @Input() public autocompleteObservableFetchLimit = 100;
 
@@ -192,18 +194,20 @@ export class TagInputVirtualizedDropdown {
             this.tagInput
                 .onTextChange
                 .filter((text: string) => text.trim().length >= this.minimumTextLength)
-                .subscribe((text: string) => this.getItemsFromObservable(text, 0, this.autocompleteObservableFetchLimit));
+                .subscribe((text: string) =>
+                    this.getItemsFromObservable(text, 0, this.autocompleteObservableFetchLimit));
 
-
-            this.vScroll
-                .end
-                .filter((e: ChangeEvent) => {
-                    return this.autocompleteItems.length > 0 && e.end == this.autocompleteItems.length;
-                })
-                .subscribe(
-                    (e: ChangeEvent) => this.getItemsFromObservable(
-                        this.tagInput.inputTextValue, this.autocompleteItems.length, this.autocompleteObservableFetchLimit)
-                );
+            if (this.totalOfItemsObservable) {
+                this.vScroll
+                    .end
+                    .filter((e: ChangeEvent) => this.autocompleteItems.length > 0 && e.end == this.autocompleteItems.length)
+                    .flatMap((e: ChangeEvent) => this.totalOfItemsObservable(this.tagInput.inputTextValue))
+                    .filter(total => total > this.autocompleteItems.length + this.autocompleteObservableFetchLimit)
+                    .subscribe(
+                        () => this.getItemsFromObservable(this.tagInput.inputTextValue,
+                            this.autocompleteItems.length, this.autocompleteObservableFetchLimit)
+                    );
+            }
         }
 
         this.dropdown.onShow.subscribe(() => {
