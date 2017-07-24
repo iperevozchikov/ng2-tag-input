@@ -30,6 +30,7 @@ export declare class TagInputVirtualizedDropdown {
     items: TagModel[];
     private _autocompleteItems;
     autocompleteItems: TagModel[];
+    flexibleMenuHeight: boolean;
     constructor(tagInput: TagInputComponent);
     ngOnInit(): void;
     updatePosition(): void;

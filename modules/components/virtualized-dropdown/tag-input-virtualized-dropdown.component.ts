@@ -172,6 +172,8 @@ export class TagInputVirtualizedDropdown {
         });
     }
 
+    @Input() public flexibleMenuHeight: boolean = false;
+
     constructor(
         @Inject(forwardRef(() => TagInputComponent)) private tagInput: TagInputComponent
     ) {}
@@ -287,6 +289,20 @@ export class TagInputVirtualizedDropdown {
 
         // set items
         this.setItems(items);
+
+        if (this.flexibleMenuHeight) {
+            const el: HTMLElement = this.dropdown.menu['element']['nativeElement']['children'][0];
+
+            const totalHeight = items.length * this.dropdownMenuItemHeight;
+
+            if (el.style.height) {
+                el.style.cssText.replace(/(height\:)\s*[0-9]+(px|%)\s*(!important)?;?/i, '');
+            }
+
+            const newHeight = totalHeight < 400 ? (totalHeight + 10).toString() + 'px' : '100%';
+
+            el.setAttribute('style', el.style.cssText + `height: ${newHeight} !important;`);
+        }
 
         if (showDropdown && !this.isVisible) {
             this.dropdown.show(position);

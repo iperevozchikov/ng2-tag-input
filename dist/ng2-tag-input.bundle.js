@@ -3021,6 +3021,7 @@ var TagInputVirtualizedDropdown = (function () {
         this.appendToBody = true;
         this.items = [];
         this._autocompleteItems = [];
+        this.flexibleMenuHeight = false;
         this.show = function () {
             var value = _this.tagInput.inputForm.value.value.trim();
             var position = _this.tagInput.inputForm.getElementPosition();
@@ -3037,6 +3038,15 @@ var TagInputVirtualizedDropdown = (function () {
                 showDropdownIfEmpty;
             var hideDropdown = _this.isVisible && (!hasItems || !hasMinimumText);
             _this.setItems(items);
+            if (_this.flexibleMenuHeight) {
+                var el = _this.dropdown.menu['element']['nativeElement']['children'][0];
+                var totalHeight = items.length * _this.dropdownMenuItemHeight;
+                if (el.style.height) {
+                    el.style.cssText.replace(/(height\:)\s*[0-9]+(px|%)\s*(!important)?;?/i, '');
+                }
+                var newHeight = totalHeight < 400 ? (totalHeight + 10).toString() + 'px' : '100%';
+                el.setAttribute('style', el.style.cssText + ("height: " + newHeight + " !important;"));
+            }
             if (showDropdown && !_this.isVisible) {
                 _this.dropdown.show(position);
             }
@@ -3272,6 +3282,10 @@ __decorate([
     __metadata("design:type", Array),
     __metadata("design:paramtypes", [Array])
 ], TagInputVirtualizedDropdown.prototype, "autocompleteItems", null);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Boolean)
+], TagInputVirtualizedDropdown.prototype, "flexibleMenuHeight", void 0);
 __decorate([
     core_1.HostListener('window:scroll'),
     __metadata("design:type", Function),
