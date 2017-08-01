@@ -48,7 +48,10 @@ var TagInputComponent = (function (_super) {
     function TagInputComponent(renderer) {
         var _this = _super.call(this) || this;
         _this.renderer = renderer;
-        _this.applyFocus = true;
+        _this.applyFocusOnClick = true;
+        _this.applyFocusOnAdd = true;
+        _this.applyFocusOnRemove = true;
+        _this.applyFocusOnLast = true;
         _this.separatorKeys = [];
         _this.separatorKeyCodes = [];
         _this.placeholder = core_2.constants.PLACEHOLDER;
@@ -264,7 +267,7 @@ var TagInputComponent = (function (_super) {
     };
     TagInputComponent.prototype.switchNext = function (item) {
         if (this.tags.last.model === item) {
-            this.focus(this.applyFocus);
+            this.focus(this.applyFocusOnLast);
             return;
         }
         var tags = this.tags.toArray();
@@ -363,7 +366,7 @@ var TagInputComponent = (function (_super) {
         if (this.selectedTag === tag) {
             this.selectItem(undefined, false);
         }
-        this.focus(this.applyFocus, false);
+        this.focus(this.applyFocusOnRemove, false);
         this.onRemove.emit(tag);
     };
     TagInputComponent.prototype.addItem = function (fromAutocomplete, item, index) {
@@ -373,7 +376,7 @@ var TagInputComponent = (function (_super) {
         if (index === void 0) { index = undefined; }
         var reset = function () {
             _this.setInputValue('');
-            _this.focus(_this.applyFocus, false);
+            _this.focus(_this.applyFocusOnAdd, false);
         };
         var validationFilter = function (tag) {
             var isValid = _this.isTagValid(tag, fromAutocomplete);
@@ -432,8 +435,11 @@ var TagInputComponent = (function (_super) {
     };
     TagInputComponent.prototype.setUpTextChangeSubscriber = function () {
         var _this = this;
-        this.inputForm.form.valueChanges
+        this.inputForm
+            .form
+            .valueChanges
             .debounceTime(this.onTextChangeDebounce)
+            .filter(function () { return _this.formValue.trim().length > 0; })
             .subscribe(function () { return _this.onTextChange.emit(_this.formValue); });
     };
     TagInputComponent.prototype.setUpOnBlurSubscriber = function () {
@@ -473,7 +479,19 @@ var TagInputComponent = (function (_super) {
 __decorate([
     core_1.Input(),
     __metadata("design:type", Object)
-], TagInputComponent.prototype, "applyFocus", void 0);
+], TagInputComponent.prototype, "applyFocusOnClick", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputComponent.prototype, "applyFocusOnAdd", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputComponent.prototype, "applyFocusOnRemove", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputComponent.prototype, "applyFocusOnLast", void 0);
 __decorate([
     core_1.Input(),
     __metadata("design:type", Array)

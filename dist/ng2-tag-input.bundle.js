@@ -2058,7 +2058,10 @@ var TagInputComponent = (function (_super) {
     function TagInputComponent(renderer) {
         var _this = _super.call(this) || this;
         _this.renderer = renderer;
-        _this.applyFocus = true;
+        _this.applyFocusOnClick = true;
+        _this.applyFocusOnAdd = true;
+        _this.applyFocusOnRemove = true;
+        _this.applyFocusOnLast = true;
         _this.separatorKeys = [];
         _this.separatorKeyCodes = [];
         _this.placeholder = core_2.constants.PLACEHOLDER;
@@ -2274,7 +2277,7 @@ var TagInputComponent = (function (_super) {
     };
     TagInputComponent.prototype.switchNext = function (item) {
         if (this.tags.last.model === item) {
-            this.focus(this.applyFocus);
+            this.focus(this.applyFocusOnLast);
             return;
         }
         var tags = this.tags.toArray();
@@ -2373,7 +2376,7 @@ var TagInputComponent = (function (_super) {
         if (this.selectedTag === tag) {
             this.selectItem(undefined, false);
         }
-        this.focus(this.applyFocus, false);
+        this.focus(this.applyFocusOnRemove, false);
         this.onRemove.emit(tag);
     };
     TagInputComponent.prototype.addItem = function (fromAutocomplete, item, index) {
@@ -2383,7 +2386,7 @@ var TagInputComponent = (function (_super) {
         if (index === void 0) { index = undefined; }
         var reset = function () {
             _this.setInputValue('');
-            _this.focus(_this.applyFocus, false);
+            _this.focus(_this.applyFocusOnAdd, false);
         };
         var validationFilter = function (tag) {
             var isValid = _this.isTagValid(tag, fromAutocomplete);
@@ -2442,8 +2445,11 @@ var TagInputComponent = (function (_super) {
     };
     TagInputComponent.prototype.setUpTextChangeSubscriber = function () {
         var _this = this;
-        this.inputForm.form.valueChanges
+        this.inputForm
+            .form
+            .valueChanges
             .debounceTime(this.onTextChangeDebounce)
+            .filter(function () { return _this.formValue.trim().length > 0; })
             .subscribe(function () { return _this.onTextChange.emit(_this.formValue); });
     };
     TagInputComponent.prototype.setUpOnBlurSubscriber = function () {
@@ -2483,7 +2489,19 @@ var TagInputComponent = (function (_super) {
 __decorate([
     core_1.Input(),
     __metadata("design:type", Object)
-], TagInputComponent.prototype, "applyFocus", void 0);
+], TagInputComponent.prototype, "applyFocusOnClick", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputComponent.prototype, "applyFocusOnAdd", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputComponent.prototype, "applyFocusOnRemove", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputComponent.prototype, "applyFocusOnLast", void 0);
 __decorate([
     core_1.Input(),
     __metadata("design:type", Array)
@@ -5555,7 +5573,7 @@ module.exports = "<!-- form -->\n<form (submit)=\"submit($event)\" [formGroup]=\
 /* 55 */
 /***/ (function(module, exports) {
 
-module.exports = "<!-- CONTAINER -->\n\n<div ngClass=\"ng2-tag-input {{ theme || '' }}\"\n     (click)=\"focus(true, false)\"\n     [attr.tabindex]=\"-1\"\n\n     (drop)=\"dragZone ? onTagDropped($event, undefined) : undefined\"\n     (dragenter)=\"dragZone ? onDragOver($event) : undefined\"\n     (dragover)=\"dragZone ? onDragOver($event) : undefined\"\n     (dragleave)=\"dragZone ? onDragEnd() : undefined\"\n\n     [class.ng2-tag-input--dropping]=\"isDropping\"\n     [class.ng2-tag-input--disabled]=\"disabled\"\n     [class.ng2-tag-input--loading]=\"isLoading\"\n     [class.ng2-tag-input--invalid]=\"hasErrors()\"\n     [class.ng2-tag-input--focused]=\"isInputFocused()\">\n\n    <!-- TAGS -->\n    <div class=\"ng2-tags-container\">\n        <tag *ngFor=\"let item of items; let i = index; trackBy: trackBy\"\n\n             (onSelect)=\"selectItem(item)\"\n             (onRemove)=\"onRemoveRequested(item, i)\"\n             (onKeyDown)=\"handleKeydown($event, item)\"\n             (onTagEdited)=\"onTagEdited.emit(item)\"\n             (onBlur)=\"onTagBlurred($event, i)\"\n             draggable=\"{{editable}}\"\n\n             (dragstart)=\"dragZone ? onDragStarted($event, i) : undefined\"\n             (drop)=\"dragZone ? onTagDropped($event, i) : undefined\"\n             (dragenter)=\"dragZone ? onDragOver($event) : undefined\"\n             (dragover)=\"dragZone ? onDragOver($event) : undefined\"\n             (dragleave)=\"dragZone ? onDragEnd() : undefined\"\n\n             [attr.tabindex]=\"0\"\n\n             [disabled]=\"disabled\"\n             [@flyInOut]=\"'in'\"\n             [hasRipple]=\"ripple\"\n             [index]=\"i\"\n             [removable]=\"removable\"\n             [editable]=\"editable\"\n             [displayBy]=\"displayBy\"\n             [identifyBy]=\"identifyBy\"\n             [template]=\"!!hasCustomTemplate() ? templates.first : undefined\"\n             [draggable]=\"dragZone\"\n             [model]=\"item\">\n        </tag>\n\n        <tag-input-form\n            (onSubmit)=\"onAddingRequested(false, formValue)\"\n            (onBlur)=\"blur()\"\n            (onFocus)=\"focus(false, dropdown ? dropdown.showDropdownIfEmpty : false)\"\n            (onKeydown)=\"fireEvents('keydown', $event)\"\n            (onKeyup)=\"fireEvents('keyup', $event)\"\n\n            [(inputText)]=\"inputText\"\n            [disabled]=\"disabled\"\n            [validators]=\"validators\"\n            [asyncValidators]=\"asyncValidators\"\n            [hidden]=\"maxItemsReached\"\n            [placeholder]=\"items.length ? placeholder : secondaryPlaceholder\"\n            [inputClass]=\"inputClass\"\n            [inputId]=\"inputId\"\n            [tabindex]=\"tabindex\">\n        </tag-input-form>\n    </div>\n\n    <div class=\"progress-bar\" *ngIf=\"isLoading\"></div>\n</div>\n\n<!-- ERRORS -->\n<div *ngIf=\"hasErrors()\" class=\"error-messages {{ theme || '' }}\">\n    <p *ngFor=\"let error of inputForm.getErrorMessages(errorMessages)\" class=\"error-message\">\n        <span>{{ error }}</span>\n    </p>\n</div>\n\n<ng-content></ng-content>\n";
+module.exports = "<!-- CONTAINER -->\n\n<div ngClass=\"ng2-tag-input {{ theme || '' }}\"\n     (click)=\"focus(applyFocusOnClick, false)\"\n     [attr.tabindex]=\"-1\"\n\n     (drop)=\"dragZone ? onTagDropped($event, undefined) : undefined\"\n     (dragenter)=\"dragZone ? onDragOver($event) : undefined\"\n     (dragover)=\"dragZone ? onDragOver($event) : undefined\"\n     (dragleave)=\"dragZone ? onDragEnd() : undefined\"\n\n     [class.ng2-tag-input--dropping]=\"isDropping\"\n     [class.ng2-tag-input--disabled]=\"disabled\"\n     [class.ng2-tag-input--loading]=\"isLoading\"\n     [class.ng2-tag-input--invalid]=\"hasErrors()\"\n     [class.ng2-tag-input--focused]=\"isInputFocused()\">\n\n    <!-- TAGS -->\n    <div class=\"ng2-tags-container\">\n        <tag *ngFor=\"let item of items; let i = index; trackBy: trackBy\"\n\n             (onSelect)=\"selectItem(item)\"\n             (onRemove)=\"onRemoveRequested(item, i)\"\n             (onKeyDown)=\"handleKeydown($event, item)\"\n             (onTagEdited)=\"onTagEdited.emit(item)\"\n             (onBlur)=\"onTagBlurred($event, i)\"\n             draggable=\"{{editable}}\"\n\n             (dragstart)=\"dragZone ? onDragStarted($event, i) : undefined\"\n             (drop)=\"dragZone ? onTagDropped($event, i) : undefined\"\n             (dragenter)=\"dragZone ? onDragOver($event) : undefined\"\n             (dragover)=\"dragZone ? onDragOver($event) : undefined\"\n             (dragleave)=\"dragZone ? onDragEnd() : undefined\"\n\n             [attr.tabindex]=\"0\"\n\n             [disabled]=\"disabled\"\n             [@flyInOut]=\"'in'\"\n             [hasRipple]=\"ripple\"\n             [index]=\"i\"\n             [removable]=\"removable\"\n             [editable]=\"editable\"\n             [displayBy]=\"displayBy\"\n             [identifyBy]=\"identifyBy\"\n             [template]=\"!!hasCustomTemplate() ? templates.first : undefined\"\n             [draggable]=\"dragZone\"\n             [model]=\"item\">\n        </tag>\n\n        <tag-input-form\n            (onSubmit)=\"onAddingRequested(false, formValue)\"\n            (onBlur)=\"blur()\"\n            (onFocus)=\"focus(false, dropdown ? dropdown.showDropdownIfEmpty : false)\"\n            (onKeydown)=\"fireEvents('keydown', $event)\"\n            (onKeyup)=\"fireEvents('keyup', $event)\"\n\n            [(inputText)]=\"inputText\"\n            [disabled]=\"disabled\"\n            [validators]=\"validators\"\n            [asyncValidators]=\"asyncValidators\"\n            [hidden]=\"maxItemsReached\"\n            [placeholder]=\"items.length ? placeholder : secondaryPlaceholder\"\n            [inputClass]=\"inputClass\"\n            [inputId]=\"inputId\"\n            [tabindex]=\"tabindex\">\n        </tag-input-form>\n    </div>\n\n    <div class=\"progress-bar\" *ngIf=\"isLoading\"></div>\n</div>\n\n<!-- ERRORS -->\n<div *ngIf=\"hasErrors()\" class=\"error-messages {{ theme || '' }}\">\n    <p *ngFor=\"let error of inputForm.getErrorMessages(errorMessages)\" class=\"error-message\">\n        <span>{{ error }}</span>\n    </p>\n</div>\n\n<ng-content></ng-content>\n";
 
 /***/ }),
 /* 56 */

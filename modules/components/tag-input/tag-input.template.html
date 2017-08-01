@@ -1,7 +1,7 @@
 <!-- CONTAINER -->
 
 <div ngClass="ng2-tag-input {{ theme || '' }}"
-     (click)="focus(true, false)"
+     (click)="focus(applyFocusOnClick, false)"
      [attr.tabindex]="-1"
 
      (drop)="dragZone ? onTagDropped($event, undefined) : undefined"

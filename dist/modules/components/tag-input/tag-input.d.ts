@@ -9,7 +9,10 @@ import { TagInputAccessor, TagModel } from '../../core';
 import { TagInputForm, TagInputDropdown, TagInputVirtualizedDropdown, TagComponent } from '../../components';
 export declare class TagInputComponent extends TagInputAccessor implements OnInit, AfterViewInit {
     private renderer;
-    applyFocus: boolean;
+    applyFocusOnClick: boolean;
+    applyFocusOnAdd: boolean;
+    applyFocusOnRemove: boolean;
+    applyFocusOnLast: boolean;
     separatorKeys: string[];
     separatorKeyCodes: number[];
     placeholder: string;

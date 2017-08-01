@@ -69,7 +69,13 @@ const CUSTOM_ACCESSOR = {
     animations: animations
 })
 export class TagInputComponent extends TagInputAccessor implements OnInit, AfterViewInit {
-    @Input() public applyFocus = true;
+    @Input() public applyFocusOnClick = true;
+
+    @Input() public applyFocusOnAdd = true;
+
+    @Input() public applyFocusOnRemove = true;
+
+    @Input() public applyFocusOnLast = true;
 
     /**
      * @name separatorKeys
@@ -693,7 +699,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
      */
     public switchNext(item: TagModel): void {
         if (this.tags.last.model === item) {
-            this.focus(this.applyFocus);
+            this.focus(this.applyFocusOnLast);
             return;
         }
 
@@ -879,7 +885,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
         }
 
         // focus input
-        this.focus(this.applyFocus, false);
+        this.focus(this.applyFocusOnRemove, false);
 
         // emit remove event
         this.onRemove.emit(tag);
@@ -900,7 +906,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
             this.setInputValue('');
 
             // focus input
-            this.focus(this.applyFocus, false);
+            this.focus(this.applyFocusOnAdd, false);
         };
 
         /**
@@ -999,8 +1005,11 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
      * @name setUpTextChangeSubscriber
      */
     private setUpTextChangeSubscriber(): void {
-        this.inputForm.form.valueChanges
+        this.inputForm
+            .form
+            .valueChanges
             .debounceTime(this.onTextChangeDebounce)
+            .filter(() => this.formValue.trim().length > 0)
             .subscribe(() => this.onTextChange.emit(this.formValue));
     }
 
