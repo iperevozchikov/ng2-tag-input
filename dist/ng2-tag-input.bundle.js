@@ -2058,6 +2058,7 @@ var TagInputComponent = (function (_super) {
     function TagInputComponent(renderer) {
         var _this = _super.call(this) || this;
         _this.renderer = renderer;
+        _this.applyFocus = true;
         _this.separatorKeys = [];
         _this.separatorKeyCodes = [];
         _this.placeholder = core_2.constants.PLACEHOLDER;
@@ -2273,7 +2274,7 @@ var TagInputComponent = (function (_super) {
     };
     TagInputComponent.prototype.switchNext = function (item) {
         if (this.tags.last.model === item) {
-            this.focus(true);
+            this.focus(this.applyFocus);
             return;
         }
         var tags = this.tags.toArray();
@@ -2372,7 +2373,7 @@ var TagInputComponent = (function (_super) {
         if (this.selectedTag === tag) {
             this.selectItem(undefined, false);
         }
-        this.focus(true, false);
+        this.focus(this.applyFocus, false);
         this.onRemove.emit(tag);
     };
     TagInputComponent.prototype.addItem = function (fromAutocomplete, item, index) {
@@ -2382,7 +2383,7 @@ var TagInputComponent = (function (_super) {
         if (index === void 0) { index = undefined; }
         var reset = function () {
             _this.setInputValue('');
-            _this.focus(true, false);
+            _this.focus(_this.applyFocus, false);
         };
         var validationFilter = function (tag) {
             var isValid = _this.isTagValid(tag, fromAutocomplete);
@@ -2479,6 +2480,10 @@ var TagInputComponent = (function (_super) {
     };
     return TagInputComponent;
 }(core_2.TagInputAccessor));
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputComponent.prototype, "applyFocus", void 0);
 __decorate([
     core_1.Input(),
     __metadata("design:type", Array)

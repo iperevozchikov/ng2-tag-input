@@ -69,6 +69,8 @@ const CUSTOM_ACCESSOR = {
     animations: animations
 })
 export class TagInputComponent extends TagInputAccessor implements OnInit, AfterViewInit {
+    @Input() public applyFocus = true;
+
     /**
      * @name separatorKeys
      * @desc keyboard keys with which a user can separate items
@@ -691,7 +693,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
      */
     public switchNext(item: TagModel): void {
         if (this.tags.last.model === item) {
-            this.focus(true);
+            this.focus(this.applyFocus);
             return;
         }
 
@@ -877,7 +879,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
         }
 
         // focus input
-        this.focus(true, false);
+        this.focus(this.applyFocus, false);
 
         // emit remove event
         this.onRemove.emit(tag);
@@ -898,7 +900,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
             this.setInputValue('');
 
             // focus input
-            this.focus(true, false);
+            this.focus(this.applyFocus, false);
         };
 
         /**
