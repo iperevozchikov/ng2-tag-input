@@ -586,25 +586,25 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
         const event = data.event;
         const key = event.keyCode || event.which;
 
-        switch (constants.KEY_PRESS_ACTIONS[key]) {
-            case constants.ACTIONS_KEYS.DELETE:
-                if (this.selectedTag && this.removable) {
-                    const index = this.items.indexOf(this.selectedTag);
-                    this.onRemoveRequested(this.selectedTag, index);
-                }
-                break;
-            case constants.ACTIONS_KEYS.SWITCH_PREV:
-                this.switchPrev(data.model);
-                break;
-            case constants.ACTIONS_KEYS.SWITCH_NEXT:
-                this.switchNext(data.model);
-                break;
-            case constants.ACTIONS_KEYS.TAB:
-                this.switchNext(data.model);
-                break;
-            default:
-                return;
-        }
+        // switch (constants.KEY_PRESS_ACTIONS[key]) {
+        //     case constants.ACTIONS_KEYS.DELETE:
+        //         if (this.selectedTag && this.removable) {
+        //             const index = this.items.indexOf(this.selectedTag);
+        //             this.onRemoveRequested(this.selectedTag, index);
+        //         }
+        //         break;
+        //     case constants.ACTIONS_KEYS.SWITCH_PREV:
+        //         this.switchPrev(data.model);
+        //         break;
+        //     case constants.ACTIONS_KEYS.SWITCH_NEXT:
+        //         this.switchNext(data.model);
+        //         break;
+        //     case constants.ACTIONS_KEYS.TAB:
+        //         this.switchNext(data.model);
+        //         break;
+        //     default:
+        //         return;
+        // }
 
         // prevent default behaviour
         event.preventDefault();
