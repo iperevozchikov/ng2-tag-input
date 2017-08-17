@@ -20,6 +20,7 @@ export declare class TagInputVirtualizedDropdown {
     focusFirstElement: boolean;
     showDropdownIfEmpty: boolean;
     autocompleteObservable: (text: string, skip: number, limit: number) => Observable<any>;
+    loadThresholdOfAutocompleteItems: number;
     totalOfItemsObservable: (text: string) => Observable<number>;
     autocompleteObservableFetchLimit: number;
     minimumTextLength: number;

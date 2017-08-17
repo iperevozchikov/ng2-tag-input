@@ -2214,25 +2214,6 @@ var TagInputComponent = (function (_super) {
     TagInputComponent.prototype.handleKeydown = function (data) {
         var event = data.event;
         var key = event.keyCode || event.which;
-        switch (core_2.constants.KEY_PRESS_ACTIONS[key]) {
-            case core_2.constants.ACTIONS_KEYS.DELETE:
-                if (this.selectedTag && this.removable) {
-                    var index = this.items.indexOf(this.selectedTag);
-                    this.onRemoveRequested(this.selectedTag, index);
-                }
-                break;
-            case core_2.constants.ACTIONS_KEYS.SWITCH_PREV:
-                this.switchPrev(data.model);
-                break;
-            case core_2.constants.ACTIONS_KEYS.SWITCH_NEXT:
-                this.switchNext(data.model);
-                break;
-            case core_2.constants.ACTIONS_KEYS.TAB:
-                this.switchNext(data.model);
-                break;
-            default:
-                return;
-        }
         event.preventDefault();
     };
     TagInputComponent.prototype.setInputValue = function (value) {
@@ -3031,6 +3012,7 @@ var TagInputVirtualizedDropdown = (function () {
         this.offset = '50 0';
         this.focusFirstElement = false;
         this.showDropdownIfEmpty = false;
+        this.loadThresholdOfAutocompleteItems = 95;
         this.autocompleteObservableFetchLimit = 100;
         this.minimumTextLength = 1;
         this.displayBy = 'display';
@@ -3124,6 +3106,9 @@ var TagInputVirtualizedDropdown = (function () {
     });
     TagInputVirtualizedDropdown.prototype.ngOnInit = function () {
         var _this = this;
+        if (this.loadThresholdOfAutocompleteItems > 100 || this.loadThresholdOfAutocompleteItems < 0) {
+            this.loadThresholdOfAutocompleteItems = 95;
+        }
         this.onItemClicked()
             .subscribe(this.requestAdding);
         this.onHide()
@@ -3140,7 +3125,11 @@ var TagInputVirtualizedDropdown = (function () {
             if (this.totalOfItemsObservable) {
                 this.vScroll
                     .end
-                    .filter(function (e) { return _this.autocompleteItems.length > 0 && e.end == _this.autocompleteItems.length; })
+                    .filter(function (e) {
+                    var autocompleteItemsCount = _this.autocompleteItems.length - _this.tagInput.items.length;
+                    var scrolled = Math.floor((e.end * 100) / autocompleteItemsCount);
+                    return _this.autocompleteItems.length > 0 && scrolled >= _this.loadThresholdOfAutocompleteItems;
+                })
                     .flatMap(function (e) { return _this.totalOfItemsObservable(_this.tagInput.inputTextValue); })
                     .filter(function (total) { return total > _this.autocompleteItems.length + _this.autocompleteObservableFetchLimit; })
                     .subscribe(function () { return _this.getItemsFromObservable(_this.tagInput.inputTextValue, _this.autocompleteItems.length, _this.autocompleteObservableFetchLimit); });
@@ -3272,6 +3261,10 @@ __decorate([
     core_1.Input(),
     __metadata("design:type", Function)
 ], TagInputVirtualizedDropdown.prototype, "autocompleteObservable", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], TagInputVirtualizedDropdown.prototype, "loadThresholdOfAutocompleteItems", void 0);
 __decorate([
     core_1.Input(),
     __metadata("design:type", Function)

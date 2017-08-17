@@ -204,25 +204,6 @@ var TagInputComponent = (function (_super) {
     TagInputComponent.prototype.handleKeydown = function (data) {
         var event = data.event;
         var key = event.keyCode || event.which;
-        switch (core_2.constants.KEY_PRESS_ACTIONS[key]) {
-            case core_2.constants.ACTIONS_KEYS.DELETE:
-                if (this.selectedTag && this.removable) {
-                    var index = this.items.indexOf(this.selectedTag);
-                    this.onRemoveRequested(this.selectedTag, index);
-                }
-                break;
-            case core_2.constants.ACTIONS_KEYS.SWITCH_PREV:
-                this.switchPrev(data.model);
-                break;
-            case core_2.constants.ACTIONS_KEYS.SWITCH_NEXT:
-                this.switchNext(data.model);
-                break;
-            case core_2.constants.ACTIONS_KEYS.TAB:
-                this.switchNext(data.model);
-                break;
-            default:
-                return;
-        }
         event.preventDefault();
     };
     TagInputComponent.prototype.setInputValue = function (value) {
