@@ -208,11 +208,14 @@ export class TagInputVirtualizedDropdown {
             if (this.totalOfItemsObservable) {
                 this.vScroll
                     .end
+                    .debounceTime(350)
                     .filter((e: ChangeEvent) => {
                         const autocompleteItemsCount = this.autocompleteItems.length - this.tagInput.items.length;
                         const scrolled = Math.floor((e.end * 100) / autocompleteItemsCount);
 
-                        return this.autocompleteItems.length > 0 && scrolled >= this.loadThresholdOfAutocompleteItems;
+                        return this.autocompleteItems.length > 0
+                            && scrolled >= this.loadThresholdOfAutocompleteItems
+                            && !this.tagInput.isLoading;
                     })
                     .flatMap((e: ChangeEvent) => this.totalOfItemsObservable(this.tagInput.inputTextValue))
                     .filter(total => total > this.autocompleteItems.length + this.autocompleteObservableFetchLimit)

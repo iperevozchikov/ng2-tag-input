@@ -3125,10 +3125,13 @@ var TagInputVirtualizedDropdown = (function () {
             if (this.totalOfItemsObservable) {
                 this.vScroll
                     .end
+                    .debounceTime(350)
                     .filter(function (e) {
                     var autocompleteItemsCount = _this.autocompleteItems.length - _this.tagInput.items.length;
                     var scrolled = Math.floor((e.end * 100) / autocompleteItemsCount);
-                    return _this.autocompleteItems.length > 0 && scrolled >= _this.loadThresholdOfAutocompleteItems;
+                    return _this.autocompleteItems.length > 0
+                        && scrolled >= _this.loadThresholdOfAutocompleteItems
+                        && !_this.tagInput.isLoading;
                 })
                     .flatMap(function (e) { return _this.totalOfItemsObservable(_this.tagInput.inputTextValue); })
                     .filter(function (total) { return total > _this.autocompleteItems.length + _this.autocompleteObservableFetchLimit; })
