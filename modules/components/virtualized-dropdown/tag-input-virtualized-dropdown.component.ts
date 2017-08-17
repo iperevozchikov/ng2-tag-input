@@ -91,6 +91,8 @@ export class TagInputVirtualizedDropdown {
      */
     @Input() public autocompleteObservable: (text: string, skip: number, limit: number) => Observable<any>;
 
+    @Input() public loadThresholdOfAutocompleteItems = 95;
+
     @Input() public totalOfItemsObservable: (text: string) => Observable<number>;
 
     @Input() public autocompleteObservableFetchLimit = 100;
@@ -182,6 +184,10 @@ export class TagInputVirtualizedDropdown {
      * @name ngOnInit
      */
     public ngOnInit(): void {
+        if (this.loadThresholdOfAutocompleteItems > 100 || this.loadThresholdOfAutocompleteItems < 0) {
+            this.loadThresholdOfAutocompleteItems = 95;
+        }
+
         this.onItemClicked()
             .subscribe(this.requestAdding);
 
@@ -202,7 +208,12 @@ export class TagInputVirtualizedDropdown {
             if (this.totalOfItemsObservable) {
                 this.vScroll
                     .end
-                    .filter((e: ChangeEvent) => this.autocompleteItems.length > 0 && e.end == this.autocompleteItems.length)
+                    .filter((e: ChangeEvent) => {
+                        const autocompleteItemsCount = this.autocompleteItems.length - this.tagInput.items.length;
+                        const scrolled = Math.floor((e.end * 100) / autocompleteItemsCount);
+
+                        return this.autocompleteItems.length > 0 && scrolled >= this.loadThresholdOfAutocompleteItems;
+                    })
                     .flatMap((e: ChangeEvent) => this.totalOfItemsObservable(this.tagInput.inputTextValue))
                     .filter(total => total > this.autocompleteItems.length + this.autocompleteObservableFetchLimit)
                     .subscribe(
