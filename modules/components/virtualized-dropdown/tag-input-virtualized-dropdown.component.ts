@@ -218,7 +218,7 @@ export class TagInputVirtualizedDropdown {
                             && !this.tagInput.isLoading;
                     })
                     .flatMap((e: ChangeEvent) => this.totalOfItemsObservable(this.tagInput.inputTextValue))
-                    .filter(total => total > this.autocompleteItems.length + this.autocompleteObservableFetchLimit)
+                    .filter(total => this.autocompleteItems.length < total)
                     .subscribe(
                         () => this.getItemsFromObservable(this.tagInput.inputTextValue,
                             this.autocompleteItems.length, this.autocompleteObservableFetchLimit)

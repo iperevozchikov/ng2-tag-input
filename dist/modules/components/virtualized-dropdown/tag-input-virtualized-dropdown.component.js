@@ -157,7 +157,7 @@ var TagInputVirtualizedDropdown = (function () {
                         && !_this.tagInput.isLoading;
                 })
                     .flatMap(function (e) { return _this.totalOfItemsObservable(_this.tagInput.inputTextValue); })
-                    .filter(function (total) { return total > _this.autocompleteItems.length + _this.autocompleteObservableFetchLimit; })
+                    .filter(function (total) { return _this.autocompleteItems.length < total; })
                     .subscribe(function () { return _this.getItemsFromObservable(_this.tagInput.inputTextValue, _this.autocompleteItems.length, _this.autocompleteObservableFetchLimit); });
             }
         }
