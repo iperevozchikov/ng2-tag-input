@@ -1,14 +1,16 @@
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Ng2DropdownModule } from 'ng2-material-dropdown'
+import { Ng2DropdownModule } from 'ng2-material-dropdown';
 import { HighlightPipe, DragProvider, Options, OptionsProvider } from './core';
+import { VirtualScrollModule } from 'angular2-virtual-scroll';
 
 import {
     DeleteIconComponent,
     TagComponent,
     TagInputComponent,
     TagInputDropdown,
+    TagInputVirtualizedDropdown,
     TagInputForm,
     TagRipple
 } from './components';
@@ -20,6 +22,7 @@ const COMPONENTS = [
     TagComponent,
     HighlightPipe,
     TagInputDropdown,
+    TagInputVirtualizedDropdown,
     TagRipple
 ];
 
@@ -30,7 +33,8 @@ const optionsProvider = new OptionsProvider();
         CommonModule,
         ReactiveFormsModule,
         FormsModule,
-        Ng2DropdownModule
+        Ng2DropdownModule,
+        VirtualScrollModule
     ],
     declarations: COMPONENTS,
     exports: COMPONENTS,
