@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 
-import { FormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
@@ -14,7 +14,14 @@ import 'rxjs/add/operator/mapTo';
     templateUrl: './home.html'
 })
 export class Home {
-    constructor(private http: Http) {}
+    form: FormGroup;
+
+    constructor(private http: Http) {
+        this.form = new FormBuilder().group({
+            chips: [['chip'], []]
+        });
+    }
+
     disabled = true;
 
     items = ['Javascript', 'Typescript'];
@@ -50,6 +57,12 @@ export class Home {
             .map(data =>  data.json().items.concat(data.json().items).map((item, idx) => item.full_name + idx));
     };
 
+    public requestAutocompleteItemsFake = (text: string): Observable<string[]> => {
+        return Observable.of([
+            'item1', 'item2', 'item3'
+        ]);
+    };
+
     public options = {
         readonly: undefined,
         placeholder: '+ Tag'
@@ -80,15 +93,16 @@ export class Home {
     }
 
     public onTagEdited(item) {
-        console.log('input blurred: current value is ' + item);
+        console.log('tag edited: current value is ' + item);
     }
 
     public onValidationError(item) {
         console.log('invalid tag ' + item);
     }
 
-    public transform(item: string): string {
-        return `@${item}`;
+    public transform(value: string): Observable<object> {
+        const item = {display: `@${value}`, value: `@${value}`};
+        return Observable.of(item);
     }
 
     private startsWithAt(control: FormControl) {
@@ -111,7 +125,26 @@ export class Home {
         return null;
     }
 
+    private validateAsync(control: FormControl): Promise<any> {
+        return new Promise(resolve => {
+            const value = control.value;
+            const result: any = isNaN(value) ? {
+                isNan: true
+            } : null;
+  
+            setTimeout(() => {
+                resolve(result);
+            }, 1);
+        });
+    }
+
+    public asyncErrorMessages = {
+        isNan: 'Please only add numbers'
+    };
+
     public validators = [this.startsWithAt, this.endsWith$];
+
+    public asyncValidators = [this.validateAsync];
 
     public errorMessages = {
         'startsWithAt@': 'Your items need to start with \'@\'',
@@ -121,17 +154,22 @@ export class Home {
     public onAdding(tag): Observable<any> {
         const confirm = window.confirm('Do you really want to add this tag?');
         return Observable
-            .of(undefined)
-            .filter(() => confirm)
-            .mapTo(tag);
+            .of(tag)
+            .filter(() => confirm);
     }
 
     public onRemoving(tag): Observable<any> {
         const confirm = window.confirm('Do you really want to remove this tag?');
         return Observable
-            .of(undefined)
-            .filter(() => confirm)
-            .mapTo(tag);
+            .of(tag)
+            .filter(() => confirm);
+    }
+
+    public asyncOnAdding(tag): Observable<any> {
+        const confirm = window.confirm('Do you really want to add this tag?');
+        return Observable
+            .of(tag)
+            .filter(() => confirm);
     }
 
     matchingFn(): boolean {

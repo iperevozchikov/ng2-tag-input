@@ -1,3 +1,4 @@
+import { animations } from './../modules/components/tag-input/animations';
 import { NgModule } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import {BrowserModule} from '@angular/platform-browser';
@@ -9,6 +10,12 @@ import { TagInputModule } from '../modules';
 import { Home } from './home/home';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
+TagInputModule.withDefaults({
+    tagInput: {
+        placeholder: 'Add new tag'
+    }
+});
 
 @NgModule({
     imports: [

@@ -1,60 +1,27 @@
-# Tag Input Component for Angular [![Build Status](https://travis-ci.org/Gbuomprisco/ng2-tag-input.svg?branch=develop)](https://travis-ci.org/Gbuomprisco/ng2-tag-input) [![npm version](https://badge.fury.io/js/ng2-tag-input.svg)](https://badge.fury.io/js/ng2-tag-input)
-[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+# Tag Input Component for Angular [![Build Status](https://travis-ci.org/Gbuomprisco/ngx-chips.svg?branch=develop)](https://travis-ci.org/Gbuomprisco/ng2-tag-input) [![npm version](https://badge.fury.io/js/ngx-chips.svg)](https://badge.fury.io/js/ngx-chips)
 
-This is a component for Angular >= 2. Design and API are blandly inspired by Angular Material's md-chips.
+This is a component for Angular >= 4. Design and API are blandly inspired by Angular Material's md-chips. Formerly called ng2-tag-input.
 
-[![NPM](https://nodei.co/npm/ng2-tag-input.png?downloads=true&stars=true)](https://nodei.co/npm/ng2-tag-input/)
+[![NPM](https://nodei.co/npm/ngx-chips.png?downloads=true&stars=true)](https://nodei.co/npm/ngx-chips/)
 
 ## [Demo](http://www.buompris.co/ng2-tag-input/)
 
 Check out [the live demo](http://www.buompris.co/ng2-tag-input/).
 
 
-## Installing the component
+## Getting Started
 
-    npm install ng2-tag-input --save
+    npm install ngx-chips --save // OR
+    yarn add ngx-chips
 
-**Notice**: the latest version on NPM may not reflect the branch `master`. Send me an email or open an issue and tag me if you need it to be published.
-
-
-## FAQ
-
-### Does it work with Angular Universal?
-Yes.
-
-
-### Does it work with Angular's Ahead of time compilation (AOT)?
-Yes.
-
-
-### Does it work with Ionic 2?
-Yes.
-
-
-### What version does it support?
-This component is supposed to work with the latest Angular versions.
-
-If you have any issues, please do make sure you're not running a different version (or check this repo's package.json). Otherwise, please do open a new issue.
-
-
-### Can I change the style?
-Yes - check out [how to create custom themes](https://github.com/gbuomprisco/ng2-tag-input/blob/master/docs/custom-themes.md).
-
-
-### Something's broken?
-Please do open a new issue, but please check first that the same issue has not already been raised and that you are using the latest version :)
-
-Please **do not** send private emails - Github Issues are supposed to help whoever might have your same issue, so it is the right place to help each other.
-
-Issues not filled out with the provided templates are going to be closed.
-
+**Notice**: the latest version on NPM may not reflect the branch `master`. Open an issue and tag me if you need it to be published.
 
 ## Configuration
 
 Ensure you import the module:
 
 ```javascript
-import { TagInputModule } from 'ng2-tag-input';
+import { TagInputModule } from 'ngx-chips';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; // this is needed!
 
 @NgModule({
@@ -63,34 +30,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; 
 export class AppModule {}
 ```
 
-### Configuration for SystemJS users
-
-Many users have reported issues with SystemJS. I got it working with the following additions to the SystemJS configuration:
-
-```javascript
-// packages object
-{
-    'ng2-tag-input': {
-        main: 'dist/ng2-tag-input.bundle.js',
-        format: 'cjs',
-    },
-    'ng2-material-dropdown': {
-        defaultExtension: 'js',
-        main: 'dist/ng2-dropdown.bundle.js',
-        format: 'cjs',
-    },
-    'ng2-tag-input/modules/components/tag-input.template.html': {
-        defaultJSExtension: false
-    }
-    // rest of the configuration
-};
-```
-
 ## API for TagInputComponent
 
 #### Inputs
 
-##### Model (required)
+##### ngModel OR use FormGroup/formControlName (required)
 - **`ngModel`** - [**`string[] | TagModel[]`**] - Model of the component. Accepts an array of strings as input OR an array of objects.
 
 If you do use an array of objects, make sure you:
@@ -142,9 +86,9 @@ Array of keyboard keys with which is possible to define the key for separating t
 Array of input characters with which is possible to define the key for separating terms. Default is empty. Can use with `separatorKeyCodes`, either one method matched will trigger tag separation.
 
 
-**`transform`** - [**`?(item: string) => string`**]
+~~**`transform`**~~ - [**`?(item: string) => string`**] [REMOVED]
 
-A function that takes as argument the value of an item, and returns a string with the new value when appended. If the method returns null/undefined/false, the item gets rejected.
+Please use `onAdding` instead. Just pass the value, transformed, to the Observable.
 
 
 **`inputId`** - [**`?string`**]
@@ -228,9 +172,11 @@ You can use it to change the text of the input at any time, or to just bind a va
 Specifies whether the ripple effect should be visible or not (defaults to `true`)
 
 
-**`disabled`** - [**`?boolean`**]
+**`disable`** - [**`?boolean`**]
 
 If set to `true`, the input will be disabled. Similar to `readonly` but with a visual effect.
+
+*Notice**: this attribute was changed from 'disabled' to 'disable' in order to comply with Angular's compiler.
 
 
 **`tabindex`** - [**`?string`**]
@@ -242,6 +188,12 @@ If set, passes the specified tabindex to the form's input.
 
 If set, the input will be draggable. Also the input will be draggable to another form with the same dragZone value.
 
+
+**`animationDuration`** - [**`?{enter: string, leave: string}`**]
+
+This option overwrites the default timing values for the animation. If you don't like the animation at all, just set both values to '0ms'.
+
+The default value is `{enter: '250ms', leave: '150ms'}`
 
 ---
 
@@ -271,9 +223,8 @@ Example:
  public onAdding(tag: TagModel): Observable<TagModel> {
     const confirm = window.confirm('Do you really want to add this tag?');
     return Observable
-        .of(undefined)
-        .filter(() => confirm)
-        .mapTo(tag);
+        .of(tag)
+        .filter(() => confirm);
 }
 ```
 
@@ -287,9 +238,8 @@ Example:
 public onRemoving(tag: TagModel): Observable<TagModel> {
         const confirm = window.confirm('Do you really want to remove this tag?');
         return Observable
-            .of(undefined)
-            .filter(() => confirm)
-            .mapTo(tag);
+            .of(tag)
+            .filter(() => confirm);
     }
 ```
 
@@ -361,7 +311,7 @@ Event fired when a tag is edited
 
 
 ## API for TagInputDropdownComponent
-TagInputDropdownComponent is a proxy between `ng2-tag-input` and `ng2-material-dropdown`.
+TagInputDropdownComponent is a proxy between `ngx-chips` and `ng2-material-dropdown`.
 
 **`autocompleteObservable`** - [**`(text: string) => Observable<Response>`**]
 
@@ -374,6 +324,11 @@ It can be used to popuplate the autocomplete with items coming from an async req
 If set to `true`, the dropdown of the autocomplete will be shown as soon as the user focuses on the form
 
 
+**`keepOpen`** - [**`?boolean`**]
+
+To use in conjunction with `showDropdownIfEmpty`. If set to `false`, the dropdown will not reopen automatically after adding a new tag. (defaults to `true`).
+
+
 **`autocompleteItems`** - [**`?string[] | AutoCompleteModel[]`**]
 
 An array of items to populate the autocomplete dropdown
@@ -381,7 +336,7 @@ An array of items to populate the autocomplete dropdown
 
 **`offset`** - [**`?string`**]
 
-Offset to adjust the position of the dropdown with absolute values (defaults to `'0 0'`)
+Offset to adjust the position of the dropdown with absolute values (defaults to `'50 0'`)
 
 
 **`focusFirstElement`** - [**`?boolean`**]
@@ -418,6 +373,7 @@ of the input text, the second value corresponds to the value of each autocomplet
 **`appendToBody`** - [**`?boolean`**]
 
 If set to `false`, the dropdown will not be appended to the body, but will remain in its parent element. Useful when using the components inside popups or dropdowns. Defaults to `true`.
+
 
 
 ---
@@ -515,9 +471,9 @@ This will accept items only from the autocomplete dropdown:
            [onlyFromAutocomplete]="true">
     <tag-input-dropdown [showDropdownIfEmpty]="true"
                         [autocompleteItems]="['iTem1', 'item2', 'item3']">
-        <template let-item="item" let-index="index">
+        <ng-template let-item="item" let-index="index">
             {{ index }}: {{ item.display }}
-        </template>
+        </ng-template>
     </tag-input-dropdown>
 </tag-input>
 ```
@@ -544,7 +500,7 @@ public requestAutocompleteItems = (text: string): Observable<Response> => {
 If you want to use more keys to separate items, add them to separatorKeys as an array of keyboard key codes.
 
 ```html
-<tag-input [(ngModel)]='items' [separatorKeys]="[32]"></tag-input>
+<tag-input [(ngModel)]='items' [separatorKeyCodes]="[32]"></tag-input>
 ```
 
 
@@ -593,26 +549,6 @@ Pass them to the tag-input component:
 ```
 
 
-#### Items Transformer
-
-Set up a transformer, which is a function that takes the item's string as parameter, and should return
-the transformed string.
-
-```javascript
-class MyComponent {
-    public transformer(item: string): string {
-        return `@${item}`;
-    }
-}
-```
-
-Every item entered will be prefixed with `@`.
-
-```html
-<tag-input [ngModel]="['@item']" [transform]="transformer"></tag-input>
-```
-
-
 #### Events
 Set up some methods that will run when its relative event is fired.
 
@@ -641,7 +577,7 @@ Define your own template, but remember to set up the needed events using the `in
 
 ```html
 <tag-input [ngModel]="['@item']" [modelAsStrings]="true" #input>
-    <template let-item="item" let-index="index"> <!-- DEFINE HERE YOUR TEMPLATE -->
+    <ng-template let-item="item" let-index="index"> <!-- DEFINE HERE YOUR TEMPLATE -->
         <span>
             <!-- YOU MAY ACTUALLY DISPLAY WHATEVER YOU WANT IF YOU PASS AN OBJECT AS ITEM -->
             <!-- ex. item.myDisplayValue -->
@@ -649,10 +585,27 @@ Define your own template, but remember to set up the needed events using the `in
             item: {{ item }}
         </span>
         <delete-icon (click)="input.removeItem(item, index)"></delete-icon>
-    </template>
+    </ng-template>
 </tag-input>
 ```
 
+#### Add default values
+If you use many instances of the component and want to set some values by default for all of them, import the module and use `withDefaults`:
+
+```javascript
+import { TagInputModule } from 'ngx-chips';
+
+TagInputModule.withDefaults({
+    tagInput: {
+        placeholder: 'Add a new tag',
+        // add here other default values for tag-input
+    },
+    dropdown: {
+        displayBy: 'my-display-value',
+        // add here other default values for tag-input-dropdown
+    }
+});
+```
 
 #### Built-in Themes
 If you don't like how the default theme looks, or you just need it to fit in a different design, you can choose 4 new themes: `bootstrap3-info`, `bootstrap`, `dark` and `minimal`.
@@ -664,8 +617,41 @@ If you don't like how the default theme looks, or you just need it to fit in a d
 <tag-input [(ngModel)]='items' theme='dark'></tag-input>
 ```
 
-If you do not like these themes, [define your own theme](https://github.com/gbuomprisco/ng2-tag-input/blob/master/docs/custom-themes.md).
+If you do not like these themes, [define your own theme](https://github.com/gbuomprisco/ngx-chips/blob/master/docs/custom-themes.md).
 
+
+## FAQ
+
+### Does it work with Angular Universal?
+Yes.
+
+
+### Does it work with Angular's Ahead of time compilation (AOT)?
+Yes.
+
+
+### Does it work with Ionic 2?
+Yes.
+
+
+### What version does it support?
+This component is supposed to work with the latest Angular versions.
+
+If you have any issues, please do make sure you're not running a different version (or check this repo's package.json). Otherwise, please do open a new issue.
+
+
+### Can I change the style?
+Yes - check out [how to create custom themes](https://github.com/gbuomprisco/ngx-chips/blob/master/docs/custom-themes.md).
+
+
+### Something's broken?
+Please do open a new issue, but please check first that the same issue has not already been raised and that you are using the latest version :)
+
+Please **do not** send private emails - Github Issues are supposed to help whoever might have your same issue, so it is the right place to help each other.
+
+Issues not filled out with the provided templates are going to be closed. Please provide as much information as possible: do include a plunkr so that I can see what the problem is without having to replicate your environment on my laptop. The time I can spend on this is very limited.
+
+No features requests will be considered, unless they are Pull Requests. I feel the component is already quite bloated, and I'd like on solving bugs and making this more reliable for everyone.
 
 ## Contributing/Pull Requests
 Contributions are highly welcome! No, there is no guideline on how to do it. Just make sure to lint and unit test your changes. We'll figure out the rest with a couple of messages...
