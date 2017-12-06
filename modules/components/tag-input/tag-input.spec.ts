@@ -57,7 +57,7 @@ describe('TagInputComponent', () => {
 
     describe('Basic behaviours', () => {
         it('should have 2 tags set by ngModel', fakeAsync(() => {
-            const fixture: ComponentFixture<BasicTagInputComponent> = 
+            const fixture: ComponentFixture<BasicTagInputComponent> =
                 TestBed.createComponent(BasicTagInputComponent);
             const component = getComponent(fixture);
 
@@ -75,7 +75,7 @@ describe('TagInputComponent', () => {
         }));
 
         it('should be "touched" on blur', fakeAsync(() => {
-            const fixture: ComponentFixture<BasicTagInputComponent> = 
+            const fixture: ComponentFixture<BasicTagInputComponent> =
                 TestBed.createComponent(BasicTagInputComponent);
             const component = <TagInputComponent>getComponent(fixture);
             const onTouched = jasmine.createSpy('onTouched');
@@ -89,7 +89,7 @@ describe('TagInputComponent', () => {
 
     describe('when a new item is added', () => {
         it('should be added to the list of items and update its parent\'s model', fakeAsync(() => {
-            const fixture: ComponentFixture<BasicTagInputComponent> = 
+            const fixture: ComponentFixture<BasicTagInputComponent> =
                 TestBed.createComponent(BasicTagInputComponent);
             const component = getComponent(fixture);
             const value = 'New Item';
@@ -98,7 +98,7 @@ describe('TagInputComponent', () => {
             expect(component.inputForm.form.valid).toEqual(true);
 
             component.onAddingRequested(false, value);
-            
+
             tick();
             fixture.detectChanges();
 
@@ -147,7 +147,7 @@ describe('TagInputComponent', () => {
         });
 
         it('does not allow dupes', fakeAsync(() => {
-            const fixture: ComponentFixture<BasicTagInputComponent> = 
+            const fixture: ComponentFixture<BasicTagInputComponent> =
                 TestBed.createComponent(BasicTagInputComponent);
             const component = getComponent(fixture);
 
@@ -228,14 +228,14 @@ describe('TagInputComponent', () => {
             tick();
 
             expect(component.inputForm.form.valid).toBe(false);
-            
+
             const valid = '@Abcde';
 
             // addItem element with > 3 chars with @
             component.setInputValue(valid);
 
             expect(component.inputForm.form.valid).toBe(true);
-            
+
             component.onAddingRequested(false, valid);
             fixture.detectChanges();
             tick();
@@ -253,7 +253,7 @@ describe('TagInputComponent', () => {
 
             component.setInputValue(value);
             expect(component.inputForm.form.valid).toBe(false);
-            
+
             const invalid = '@J';
 
             component.setInputValue(invalid);
@@ -549,12 +549,14 @@ describe('TagInputComponent', () => {
             const component: TagInputComponent = getComponent(fixture);
 
             component.setInputValue('i');
-            component.dropdown.show();
+            !!component.dropdown && component.dropdown.show();
 
             fixture.detectChanges();
             tick();
 
-            expect(component.dropdown.isVisible).toEqual(true);
+            if (!!component.dropdown) {
+                expect(component.dropdown.isVisible).toEqual(true);
+            }
 
             component.inputForm.onBlur.emit();
 
