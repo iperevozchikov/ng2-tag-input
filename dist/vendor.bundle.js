@@ -4,31 +4,32 @@
 	else if(typeof define === 'function' && define.amd)
 		define(["rxjs"], factory);
 	else if(typeof exports === 'object')
-		exports["ng2-tag-input"] = factory(require("rxjs"));
+		exports["ngx-chips"] = factory(require("rxjs"));
 	else
-		root["ng2-tag-input"] = factory(root["rxjs"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_25__) {
-return webpackJsonpng2_tag_input([0],{
+		root["ngx-chips"] = factory(root["rxjs"]);
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_30__) {
+return webpackJsonpngx_chips([0],{
 
-/***/ 25:
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_25__;
-
-/***/ }),
-
-/***/ 93:
+/***/ 29:
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(0);
-__webpack_require__(7);
+__webpack_require__(14);
 __webpack_require__(5);
-__webpack_require__(25);
+__webpack_require__(15);
+__webpack_require__(30);
 module.exports = __webpack_require__(6);
 
 
+/***/ }),
+
+/***/ 30:
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_30__;
+
 /***/ })
 
-},[93]);
+},[29]);
 });
 //# sourceMappingURL=vendor.map

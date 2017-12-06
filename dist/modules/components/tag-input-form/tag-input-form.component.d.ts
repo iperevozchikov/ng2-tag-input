@@ -1,5 +1,5 @@
 import { EventEmitter } from '@angular/core';
-import { FormGroup, ValidatorFn, AbstractControl, AsyncValidatorFn } from '@angular/forms';
+import { AbstractControl, AsyncValidatorFn, FormGroup, ValidatorFn } from '@angular/forms';
 export declare class TagInputForm {
     onSubmit: EventEmitter<any>;
     onBlur: EventEmitter<any>;
@@ -18,9 +18,8 @@ export declare class TagInputForm {
     form: FormGroup;
     inputTextChange: EventEmitter<string>;
     inputTextValue: string;
-    constructor();
     ngOnInit(): void;
-    readonly value: AbstractControl;
+    readonly value: AbstractControl | null;
     isInputFocused(): boolean;
     getErrorMessages(messages: any): string[];
     hasErrors(): boolean;

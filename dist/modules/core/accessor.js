@@ -1,4 +1,3 @@
-"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -8,17 +7,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-var core_1 = require("@angular/core");
-function isObject(obj) {
+import { Input } from '@angular/core';
+import { OptionsProvider } from './providers';
+export function isObject(obj) {
     return obj === Object(obj);
 }
-exports.isObject = isObject;
 var TagInputAccessor = (function () {
     function TagInputAccessor() {
         this._items = [];
-        this.displayBy = 'display';
-        this.identifyBy = 'value';
+        this.displayBy = OptionsProvider.defaults.tagInput.displayBy;
+        this.identifyBy = OptionsProvider.defaults.tagInput.identifyBy;
     }
     Object.defineProperty(TagInputAccessor.prototype, "items", {
         get: function () {
@@ -53,15 +51,15 @@ var TagInputAccessor = (function () {
     TagInputAccessor.prototype.getItemsWithout = function (index) {
         return this.items.filter(function (item, position) { return position !== index; });
     };
+    __decorate([
+        Input(),
+        __metadata("design:type", String)
+    ], TagInputAccessor.prototype, "displayBy", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", String)
+    ], TagInputAccessor.prototype, "identifyBy", void 0);
     return TagInputAccessor;
 }());
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", String)
-], TagInputAccessor.prototype, "displayBy", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", String)
-], TagInputAccessor.prototype, "identifyBy", void 0);
-exports.TagInputAccessor = TagInputAccessor;
+export { TagInputAccessor };
 //# sourceMappingURL=accessor.js.map

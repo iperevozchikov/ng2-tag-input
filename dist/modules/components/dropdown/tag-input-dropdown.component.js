@@ -1,4 +1,3 @@
-"use strict";
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -16,76 +15,79 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-var core_1 = require("@angular/core");
-var ng2_material_dropdown_1 = require("ng2-material-dropdown");
-var components_1 = require("../../components");
-require("rxjs/add/operator/map");
-require("rxjs/add/operator/filter");
+import { Component, ContentChildren, forwardRef, HostListener, Injector, Input, QueryList, TemplateRef, ViewChild, } from '@angular/core';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/debounceTime';
+import { Ng2Dropdown } from 'ng2-material-dropdown';
+import { OptionsProvider } from '../../core';
+import { TagInputComponent } from '../../components';
+var defaults = forwardRef(function () { return OptionsProvider.defaults.dropdown; });
 var TagInputDropdown = (function () {
-    function TagInputDropdown(tagInput) {
+    function TagInputDropdown(injector) {
         var _this = this;
-        this.tagInput = tagInput;
-        this.offset = '50 0';
-        this.focusFirstElement = false;
-        this.showDropdownIfEmpty = false;
-        this.minimumTextLength = 1;
-        this.displayBy = 'display';
-        this.identifyBy = 'value';
-        this.matchingFn = function (value, target) {
-            var targetValue = target[_this.displayBy].toString();
-            return targetValue && targetValue
-                .toLowerCase()
-                .indexOf(value.toLowerCase()) >= 0;
-        };
-        this.appendToBody = true;
+        this.injector = injector;
+        this.offset = new defaults().offset;
+        this.focusFirstElement = new defaults().focusFirstElement;
+        this.showDropdownIfEmpty = new defaults().showDropdownIfEmpty;
+        this.minimumTextLength = new defaults().minimumTextLength;
+        this.limitItemsTo = new defaults().limitItemsTo;
+        this.displayBy = new defaults().displayBy;
+        this.identifyBy = new defaults().identifyBy;
+        this.matchingFn = new defaults().matchingFn;
+        this.appendToBody = new defaults().appendToBody;
+        this.keepOpen = new defaults().keepOpen;
         this.items = [];
+        this.tagInput = this.injector.get(TagInputComponent);
         this._autocompleteItems = [];
         this.show = function () {
-            var value = _this.tagInput.inputForm.value.value.trim();
-            var position = _this.tagInput.inputForm.getElementPosition();
+            var value = _this.getFormValue();
+            var hasMinimumText = value.trim().length >= _this.minimumTextLength;
+            var position = _this.calculatePosition();
             var items = _this.getMatchingItems(value);
             var hasItems = items.length > 0;
+            var isHidden = _this.isVisible === false;
             var showDropdownIfEmpty = _this.showDropdownIfEmpty && hasItems && !value;
-            var hasMinimumText = value.length >= _this.minimumTextLength;
-            var assertions = [
-                hasItems,
-                _this.isVisible === false,
-                hasMinimumText
-            ];
-            var showDropdown = (assertions.filter(function (item) { return item; }).length === assertions.length) ||
-                showDropdownIfEmpty;
-            var hideDropdown = _this.isVisible && (!hasItems || !hasMinimumText);
+            var assertions = [];
+            var shouldShow = isHidden && ((hasItems && hasMinimumText) || showDropdownIfEmpty);
+            var shouldHide = _this.isVisible && !hasItems;
+            if (_this.autocompleteObservable && hasMinimumText) {
+                return _this.getItemsFromObservable(value);
+            }
+            if (!_this.showDropdownIfEmpty && !value) {
+                return _this.dropdown.hide();
+            }
             _this.setItems(items);
-            if (showDropdown && !_this.isVisible) {
+            if (shouldShow) {
                 _this.dropdown.show(position);
             }
-            else if (hideDropdown) {
-                _this.dropdown.hide();
+            else if (shouldHide) {
+                _this.hide();
             }
         };
         this.requestAdding = function (item) {
-            if (!item) {
-                return;
-            }
-            var model = _this.createTagModel(item);
-            _this.tagInput.onAddingRequested(true, model);
-            _this.dropdown.hide();
+            _this.tagInput.onAddingRequested(true, _this.createTagModel(item));
         };
         this.resetItems = function () {
             _this.items = [];
         };
         this.getItemsFromObservable = function (text) {
             _this.setLoadingState(true);
-            _this.autocompleteObservable(text)
-                .subscribe(function (data) {
+            var subscribeFn = function (data) {
                 _this.setLoadingState(false)
-                    .populateItems(data)
-                    .show();
-            }, function () { return _this.setLoadingState(false); });
+                    .populateItems(data);
+                _this.setItems(_this.getMatchingItems(text));
+                if (_this.items.length) {
+                    _this.dropdown.show(_this.calculatePosition());
+                }
+                else if (!_this.showDropdownIfEmpty && _this.isVisible) {
+                    _this.dropdown.hide();
+                }
+            };
+            _this.autocompleteObservable(text)
+                .first()
+                .subscribe(subscribeFn, function () { return _this.setLoadingState(false); });
         };
     }
     Object.defineProperty(TagInputDropdown.prototype, "autocompleteItems", {
@@ -110,19 +112,21 @@ var TagInputDropdown = (function () {
         configurable: true
     });
     TagInputDropdown.prototype.ngOnInit = function () {
-        var _this = this;
-        this.onItemClicked()
-            .subscribe(this.requestAdding);
-        this.onHide()
-            .subscribe(this.resetItems);
-        this.tagInput.inputForm.onKeyup
+        this.onItemClicked().subscribe(this.requestAdding);
+        this.onHide().subscribe(this.resetItems);
+        var DEBOUNCE_TIME = 200;
+        var KEEP_OPEN = this.keepOpen;
+        this.tagInput
+            .onTextChange
+            .asObservable()
+            .debounceTime(DEBOUNCE_TIME)
+            .filter(function (value) {
+            if (KEEP_OPEN === false) {
+                return value.length > 0;
+            }
+            return true;
+        })
             .subscribe(this.show);
-        if (this.autocompleteObservable) {
-            this.tagInput
-                .onTextChange
-                .filter(function (text) { return text.trim().length >= _this.minimumTextLength; })
-                .subscribe(this.getItemsFromObservable);
-        }
     };
     TagInputDropdown.prototype.updatePosition = function () {
         var position = this.tagInput.inputForm.getElementPosition();
@@ -155,11 +159,24 @@ var TagInputDropdown = (function () {
         enumerable: true,
         configurable: true
     });
+    TagInputDropdown.prototype.hide = function () {
+        this.resetItems();
+        this.dropdown.hide();
+    };
     TagInputDropdown.prototype.scrollListener = function () {
         if (!this.isVisible) {
             return;
         }
         this.updatePosition();
+    };
+    TagInputDropdown.prototype.onWindowBlur = function () {
+        this.dropdown.hide();
+    };
+    TagInputDropdown.prototype.getFormValue = function () {
+        return this.tagInput.formValue.trim();
+    };
+    TagInputDropdown.prototype.calculatePosition = function () {
+        return this.tagInput.inputForm.getElementPosition();
     };
     TagInputDropdown.prototype.createTagModel = function (item) {
         var display = typeof item.value === 'string' ? item.value : item.value[this.displayBy];
@@ -172,13 +189,14 @@ var TagInputDropdown = (function () {
         if (!value && !this.showDropdownIfEmpty) {
             return [];
         }
+        var dupesAllowed = this.tagInput.allowDupes;
         return this.autocompleteItems.filter(function (item) {
-            var hasValue = _this.tagInput.tags.some(function (tag) {
+            var hasValue = dupesAllowed ? false : _this.tagInput.tags.some(function (tag) {
                 var identifyBy = _this.tagInput.identifyBy;
                 var model = typeof tag.model === 'string' ? tag.model : tag.model[identifyBy];
                 return model === item[_this.identifyBy];
             });
-            return _this.matchingFn(value, item) && hasValue === false;
+            return _this.matchingFn(value, item) && (hasValue === false);
         });
     };
     TagInputDropdown.prototype.setItems = function (items) {
@@ -199,74 +217,83 @@ var TagInputDropdown = (function () {
         this.tagInput.isLoading = state;
         return this;
     };
+    __decorate([
+        ViewChild(Ng2Dropdown),
+        __metadata("design:type", Ng2Dropdown)
+    ], TagInputDropdown.prototype, "dropdown", void 0);
+    __decorate([
+        ContentChildren(TemplateRef),
+        __metadata("design:type", QueryList)
+    ], TagInputDropdown.prototype, "templates", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", String)
+    ], TagInputDropdown.prototype, "offset", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputDropdown.prototype, "focusFirstElement", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputDropdown.prototype, "showDropdownIfEmpty", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Function)
+    ], TagInputDropdown.prototype, "autocompleteObservable", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputDropdown.prototype, "minimumTextLength", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Number)
+    ], TagInputDropdown.prototype, "limitItemsTo", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputDropdown.prototype, "displayBy", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputDropdown.prototype, "identifyBy", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Function)
+    ], TagInputDropdown.prototype, "matchingFn", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputDropdown.prototype, "appendToBody", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputDropdown.prototype, "keepOpen", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Array),
+        __metadata("design:paramtypes", [Array])
+    ], TagInputDropdown.prototype, "autocompleteItems", null);
+    __decorate([
+        HostListener('window:scroll'),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", void 0)
+    ], TagInputDropdown.prototype, "scrollListener", null);
+    __decorate([
+        HostListener('window:blur'),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", void 0)
+    ], TagInputDropdown.prototype, "onWindowBlur", null);
+    TagInputDropdown = __decorate([
+        Component({
+            selector: 'tag-input-dropdown',
+            templateUrl: './tag-input-dropdown.template.html'
+        }),
+        __metadata("design:paramtypes", [Injector])
+    ], TagInputDropdown);
     return TagInputDropdown;
 }());
-__decorate([
-    core_1.ViewChild(ng2_material_dropdown_1.Ng2Dropdown),
-    __metadata("design:type", ng2_material_dropdown_1.Ng2Dropdown)
-], TagInputDropdown.prototype, "dropdown", void 0);
-__decorate([
-    core_1.ContentChildren(core_1.TemplateRef),
-    __metadata("design:type", core_1.QueryList)
-], TagInputDropdown.prototype, "templates", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputDropdown.prototype, "offset", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputDropdown.prototype, "focusFirstElement", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputDropdown.prototype, "showDropdownIfEmpty", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Function)
-], TagInputDropdown.prototype, "autocompleteObservable", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputDropdown.prototype, "minimumTextLength", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], TagInputDropdown.prototype, "limitItemsTo", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputDropdown.prototype, "displayBy", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputDropdown.prototype, "identifyBy", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Function)
-], TagInputDropdown.prototype, "matchingFn", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputDropdown.prototype, "appendToBody", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Array),
-    __metadata("design:paramtypes", [Array])
-], TagInputDropdown.prototype, "autocompleteItems", null);
-__decorate([
-    core_1.HostListener('window:scroll'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], TagInputDropdown.prototype, "scrollListener", null);
-TagInputDropdown = __decorate([
-    core_1.Component({
-        selector: 'tag-input-dropdown',
-        templateUrl: './tag-input-dropdown.template.html'
-    }),
-    __param(0, core_1.Inject(core_1.forwardRef(function () { return components_1.TagInputComponent; }))),
-    __metadata("design:paramtypes", [components_1.TagInputComponent])
-], TagInputDropdown);
-exports.TagInputDropdown = TagInputDropdown;
+export { TagInputDropdown };
 //# sourceMappingURL=tag-input-dropdown.component.js.map

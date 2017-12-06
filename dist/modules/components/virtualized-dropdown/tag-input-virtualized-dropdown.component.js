@@ -1,4 +1,3 @@
-"use strict";
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -19,14 +18,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-var core_1 = require("@angular/core");
-var ng2_material_dropdown_1 = require("ng2-material-dropdown");
-var angular2_virtual_scroll_1 = require("angular2-virtual-scroll");
-var components_1 = require("../../components");
-require("rxjs/add/operator/map");
-require("rxjs/add/operator/filter");
-require("rxjs/add/operator/mergeMap");
+import { Component, ViewChild, forwardRef, Inject, TemplateRef, ContentChildren, Input, QueryList, HostListener } from '@angular/core';
+import { Ng2Dropdown } from 'ng2-material-dropdown';
+import { VirtualScrollComponent } from 'angular2-virtual-scroll';
+import { TagInputComponent } from '../../components';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/mergeMap';
+import { isNumber } from 'util';
 var TagInputVirtualizedDropdown = (function () {
     function TagInputVirtualizedDropdown(tagInput) {
         var _this = this;
@@ -51,20 +50,15 @@ var TagInputVirtualizedDropdown = (function () {
         this._autocompleteItems = [];
         this.flexibleMenuHeight = false;
         this.show = function () {
-            var value = _this.tagInput.inputForm.value.value.trim();
+            var value = _this.getFormValue();
+            var hasMinimumText = value.length >= _this.minimumTextLength;
             var position = _this.tagInput.inputForm.getElementPosition();
             var items = _this.getMatchingItems(value);
             var hasItems = items.length > 0;
+            var isHidden = _this.isVisible === false;
             var showDropdownIfEmpty = _this.showDropdownIfEmpty && hasItems && !value;
-            var hasMinimumText = value.length >= _this.minimumTextLength;
-            var assertions = [
-                hasItems,
-                _this.isVisible === false,
-                hasMinimumText
-            ];
-            var showDropdown = (assertions.filter(function (item) { return item; }).length === assertions.length) ||
-                showDropdownIfEmpty;
-            var hideDropdown = _this.isVisible && (!hasItems || !hasMinimumText);
+            var shouldShow = isHidden && ((hasItems && hasMinimumText) || showDropdownIfEmpty);
+            var shouldHide = _this.isVisible && (!hasItems || !hasMinimumText);
             _this.setItems(items);
             if (_this.flexibleMenuHeight) {
                 var el = _this.dropdown.menu['element']['nativeElement']['children'][0];
@@ -75,11 +69,11 @@ var TagInputVirtualizedDropdown = (function () {
                 var newHeight = totalHeight < 400 ? (totalHeight + 10).toString() + 'px' : '100%';
                 el.setAttribute('style', el.style.cssText + ("height: " + newHeight + " !important;"));
             }
-            if (showDropdown && !_this.isVisible) {
+            if (shouldShow) {
                 _this.dropdown.show(position);
             }
-            else if (hideDropdown) {
-                _this.dropdown.hide();
+            else if (shouldHide) {
+                _this.hide();
             }
         };
         this.requestAdding = function (item) {
@@ -149,6 +143,7 @@ var TagInputVirtualizedDropdown = (function () {
                 this.vScroll
                     .end
                     .debounceTime(350)
+                    .filter(function (e) { return isNumber(e.end); })
                     .filter(function (e) {
                     var autocompleteItemsCount = _this.autocompleteItems.length - _this.tagInput.items.length;
                     var scrolled = Math.floor((e.end * 100) / autocompleteItemsCount);
@@ -196,11 +191,18 @@ var TagInputVirtualizedDropdown = (function () {
         enumerable: true,
         configurable: true
     });
+    TagInputVirtualizedDropdown.prototype.hide = function () {
+        this.resetItems();
+        this.dropdown.hide();
+    };
     TagInputVirtualizedDropdown.prototype.scrollListener = function () {
         if (!this.isVisible) {
             return;
         }
         this.updatePosition();
+    };
+    TagInputVirtualizedDropdown.prototype.getFormValue = function () {
+        return this.tagInput.formValue.trim();
     };
     TagInputVirtualizedDropdown.prototype.createTagModel = function (item) {
         var display = typeof item.value === 'string' ? item.value : item.value[this.displayBy];
@@ -241,107 +243,107 @@ var TagInputVirtualizedDropdown = (function () {
         this.tagInput.isLoading = state;
         return this;
     };
+    __decorate([
+        ViewChild(Ng2Dropdown),
+        __metadata("design:type", Ng2Dropdown)
+    ], TagInputVirtualizedDropdown.prototype, "dropdown", void 0);
+    __decorate([
+        ViewChild(VirtualScrollComponent),
+        __metadata("design:type", VirtualScrollComponent)
+    ], TagInputVirtualizedDropdown.prototype, "vScroll", void 0);
+    __decorate([
+        ContentChildren(TemplateRef),
+        __metadata("design:type", QueryList)
+    ], TagInputVirtualizedDropdown.prototype, "templates", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Number)
+    ], TagInputVirtualizedDropdown.prototype, "dropdownMenuItemWidth", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "dropdownMenuItemHeight", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Number)
+    ], TagInputVirtualizedDropdown.prototype, "scrollbarWidth", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Number)
+    ], TagInputVirtualizedDropdown.prototype, "scrollbarHeight", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "offset", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "focusFirstElement", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "showDropdownIfEmpty", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Function)
+    ], TagInputVirtualizedDropdown.prototype, "autocompleteObservable", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "loadThresholdOfAutocompleteItems", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Function)
+    ], TagInputVirtualizedDropdown.prototype, "totalOfItemsObservable", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "autocompleteObservableFetchLimit", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "minimumTextLength", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "displayBy", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "identifyBy", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Function)
+    ], TagInputVirtualizedDropdown.prototype, "matchingFn", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagInputVirtualizedDropdown.prototype, "appendToBody", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Array),
+        __metadata("design:paramtypes", [Array])
+    ], TagInputVirtualizedDropdown.prototype, "autocompleteItems", null);
+    __decorate([
+        Input(),
+        __metadata("design:type", Boolean)
+    ], TagInputVirtualizedDropdown.prototype, "flexibleMenuHeight", void 0);
+    __decorate([
+        HostListener('window:scroll'),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", void 0)
+    ], TagInputVirtualizedDropdown.prototype, "scrollListener", null);
+    TagInputVirtualizedDropdown = __decorate([
+        Component({
+            selector: 'tag-input-virtualized-dropdown',
+            templateUrl: './tag-input-virtualized-dropdown.template.html',
+            styles: ["\n        /deep/ ng2-dropdown-menu div.ng2-dropdown-menu {\n            overflow-y: hidden !important;\n            height: 100% !important;\n        }\n        \n        /deep/ ng2-dropdown-menu div.ng2-dropdown-menu__options-container {\n            height: inherit;\n        }\n    "]
+        }),
+        __param(0, Inject(forwardRef(function () { return TagInputComponent; }))),
+        __metadata("design:paramtypes", [TagInputComponent])
+    ], TagInputVirtualizedDropdown);
     return TagInputVirtualizedDropdown;
 }());
-__decorate([
-    core_1.ViewChild(ng2_material_dropdown_1.Ng2Dropdown),
-    __metadata("design:type", ng2_material_dropdown_1.Ng2Dropdown)
-], TagInputVirtualizedDropdown.prototype, "dropdown", void 0);
-__decorate([
-    core_1.ViewChild(angular2_virtual_scroll_1.VirtualScrollComponent),
-    __metadata("design:type", angular2_virtual_scroll_1.VirtualScrollComponent)
-], TagInputVirtualizedDropdown.prototype, "vScroll", void 0);
-__decorate([
-    core_1.ContentChildren(core_1.TemplateRef),
-    __metadata("design:type", core_1.QueryList)
-], TagInputVirtualizedDropdown.prototype, "templates", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], TagInputVirtualizedDropdown.prototype, "dropdownMenuItemWidth", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "dropdownMenuItemHeight", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], TagInputVirtualizedDropdown.prototype, "scrollbarWidth", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], TagInputVirtualizedDropdown.prototype, "scrollbarHeight", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "offset", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "focusFirstElement", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "showDropdownIfEmpty", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Function)
-], TagInputVirtualizedDropdown.prototype, "autocompleteObservable", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "loadThresholdOfAutocompleteItems", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Function)
-], TagInputVirtualizedDropdown.prototype, "totalOfItemsObservable", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "autocompleteObservableFetchLimit", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "minimumTextLength", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "displayBy", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "identifyBy", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Function)
-], TagInputVirtualizedDropdown.prototype, "matchingFn", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagInputVirtualizedDropdown.prototype, "appendToBody", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Array),
-    __metadata("design:paramtypes", [Array])
-], TagInputVirtualizedDropdown.prototype, "autocompleteItems", null);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Boolean)
-], TagInputVirtualizedDropdown.prototype, "flexibleMenuHeight", void 0);
-__decorate([
-    core_1.HostListener('window:scroll'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], TagInputVirtualizedDropdown.prototype, "scrollListener", null);
-TagInputVirtualizedDropdown = __decorate([
-    core_1.Component({
-        selector: 'tag-input-virtualized-dropdown',
-        templateUrl: './tag-input-virtualized-dropdown.template.html',
-        styles: ["\n        /deep/ ng2-dropdown-menu div.ng2-dropdown-menu {\n            overflow-y: hidden !important;\n            height: 100% !important;\n        }\n        \n        /deep/ ng2-dropdown-menu div.ng2-dropdown-menu__options-container {\n            height: inherit;\n        }\n    "]
-    }),
-    __param(0, core_1.Inject(core_1.forwardRef(function () { return components_1.TagInputComponent; }))),
-    __metadata("design:paramtypes", [components_1.TagInputComponent])
-], TagInputVirtualizedDropdown);
-exports.TagInputVirtualizedDropdown = TagInputVirtualizedDropdown;
+export { TagInputVirtualizedDropdown };
 //# sourceMappingURL=tag-input-virtualized-dropdown.component.js.map

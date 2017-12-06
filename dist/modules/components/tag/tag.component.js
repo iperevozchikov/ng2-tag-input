@@ -1,4 +1,11 @@
-"use strict";
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -8,9 +15,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-var core_1 = require("@angular/core");
-var tag_1 = require("../tag");
+import { Component, Input, Output, EventEmitter, TemplateRef, ElementRef, HostListener, HostBinding, ViewChild, ChangeDetectorRef, Renderer2 } from '@angular/core';
+import { TagRipple } from '../tag';
 var KeyboardEvent = global.KeyboardEvent;
 var MouseEvent = global.MouseEvent;
 var navigator = typeof window !== 'undefined' ? window.navigator : {
@@ -24,12 +30,12 @@ var TagComponent = (function () {
         this.renderer = renderer;
         this.cdRef = cdRef;
         this.disabled = false;
-        this.onSelect = new core_1.EventEmitter();
-        this.onRemove = new core_1.EventEmitter();
-        this.onBlur = new core_1.EventEmitter();
-        this.onKeyDown = new core_1.EventEmitter();
-        this.onTagEdited = new core_1.EventEmitter();
-        this.editModeActivated = false;
+        this.onSelect = new EventEmitter();
+        this.onRemove = new EventEmitter();
+        this.onBlur = new EventEmitter();
+        this.onKeyDown = new EventEmitter();
+        this.onTagEdited = new EventEmitter();
+        this.editing = false;
         this.rippleState = 'none';
     }
     Object.defineProperty(TagComponent.prototype, "readonly", {
@@ -57,9 +63,12 @@ var TagComponent = (function () {
     TagComponent.prototype.focus = function () {
         this.element.nativeElement.focus();
     };
+    TagComponent.prototype.move = function () {
+        this.moving = true;
+    };
     TagComponent.prototype.keydown = function (event) {
-        if (this.editModeActivated) {
-            event.keyCode === 13 ? this.disableEditMode(event) : this.storeNewValue();
+        if (this.editing) {
+            event.keyCode === 13 ? this.disableEditMode(event) : undefined;
             return;
         }
         this.onKeyDown.emit({ event: event, model: this.model });
@@ -70,141 +79,173 @@ var TagComponent = (function () {
         setTimeout(function () { return classList.remove('blink'); }, 50);
     };
     TagComponent.prototype.toggleEditMode = function () {
-        var classList = this.element.nativeElement.classList;
-        var className = 'tag--editing';
-        if (this.editModeActivated) {
-            this.storeNewValue();
+        if (this.editable) {
+            this.editing ? undefined : this.activateEditMode();
         }
-        else {
-            this.element.nativeElement.querySelector('[contenteditable]').focus();
-        }
-        this.editModeActivated = !this.editModeActivated;
-        this.editModeActivated ? classList.add(className) : classList.remove(className);
     };
     TagComponent.prototype.onBlurred = function (event) {
-        if (this.editable) {
-            var newValue = event.target.innerText;
-            this.toggleEditMode();
-            var result = typeof this.model === 'string' ? newValue : (_a = {}, _a[this.identifyBy] = newValue, _a[this.displayBy] = newValue, _a);
-            this.onBlur.emit(result);
+        if (!this.editable) {
+            return;
         }
+        this.disableEditMode();
+        var value = event.target.innerText;
+        var result = typeof this.model === 'string' ? value : __assign({}, this.model, (_a = {}, _a[this.displayBy] = value, _a));
+        this.onBlur.emit(result);
         var _a;
     };
     TagComponent.prototype.getDisplayValue = function (item) {
         return typeof item === 'string' ? item : item[this.displayBy];
     };
-    TagComponent.prototype.isRippleVisible = function () {
-        return !this.readonly &&
-            !this.editModeActivated &&
-            isChrome &&
-            this.hasRipple;
-    };
+    Object.defineProperty(TagComponent.prototype, "isRippleVisible", {
+        get: function () {
+            return !this.readonly &&
+                !this.editing &&
+                isChrome &&
+                this.hasRipple;
+        },
+        enumerable: true,
+        configurable: true
+    });
     TagComponent.prototype.getContentEditableText = function () {
-        return this.element.nativeElement.querySelector('[contenteditable]').innerText.trim();
+        var input = this.getContentEditable();
+        return input ? input.innerText.trim() : '';
+    };
+    TagComponent.prototype.setContentEditableText = function (model) {
+        var input = this.getContentEditable();
+        var value = this.getDisplayValue(model);
+        input.innerText = value;
+    };
+    TagComponent.prototype.activateEditMode = function () {
+        var classList = this.element.nativeElement.classList;
+        classList.add('tag--editing');
+        this.editing = true;
     };
     TagComponent.prototype.disableEditMode = function ($event) {
-        this.editModeActivated = false;
-        $event.preventDefault();
-        this.cdRef.detectChanges();
-    };
-    TagComponent.prototype.storeNewValue = function () {
-        var _this = this;
+        var classList = this.element.nativeElement.classList;
         var input = this.getContentEditableText();
+        this.editing = false;
+        classList.remove('tag--editing');
+        if (!input) {
+            this.setContentEditableText(this.model);
+            return;
+        }
+        this.storeNewValue(input);
+        this.cdRef.detectChanges();
+        if ($event) {
+            $event.preventDefault();
+        }
+    };
+    TagComponent.prototype.storeNewValue = function (input) {
+        var _this = this;
         var exists = function (model) {
             return typeof model === 'string' ?
                 model === input :
-                model[_this.identifyBy] === input;
+                model[_this.displayBy] === input;
+        };
+        var hasId = function () {
+            return _this.model[_this.identifyBy] !== _this.model[_this.displayBy];
         };
         if (exists(this.model)) {
-            var itemValue = this.model[this.identifyBy];
-            this.model = typeof this.model === 'string' ? input : (_a = {}, _a[this.identifyBy] = itemValue, _a[this.displayBy] = itemValue, _a);
-            this.onTagEdited.emit(this.model);
+            return;
         }
+        var model = typeof this.model === 'string' ? input : (_a = {},
+            _a[this.identifyBy] = hasId() ? this.model[this.identifyBy] : input,
+            _a[this.displayBy] = input,
+            _a);
+        this.model = model;
+        this.onTagEdited.emit(model);
         var _a;
+    };
+    TagComponent.prototype.getContentEditable = function () {
+        return this.element.nativeElement.querySelector('[contenteditable]');
     };
     TagComponent.prototype.isDeleteIconVisible = function () {
         return !this.readonly &&
             !this.disabled &&
             this.removable &&
-            !this.editModeActivated;
+            !this.editing;
     };
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagComponent.prototype, "model", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Boolean)
+    ], TagComponent.prototype, "removable", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Boolean)
+    ], TagComponent.prototype, "editable", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", TemplateRef)
+    ], TagComponent.prototype, "template", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", String)
+    ], TagComponent.prototype, "displayBy", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", String)
+    ], TagComponent.prototype, "identifyBy", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Number)
+    ], TagComponent.prototype, "index", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Boolean)
+    ], TagComponent.prototype, "hasRipple", void 0);
+    __decorate([
+        Input(),
+        __metadata("design:type", Object)
+    ], TagComponent.prototype, "disabled", void 0);
+    __decorate([
+        Output(),
+        __metadata("design:type", EventEmitter)
+    ], TagComponent.prototype, "onSelect", void 0);
+    __decorate([
+        Output(),
+        __metadata("design:type", EventEmitter)
+    ], TagComponent.prototype, "onRemove", void 0);
+    __decorate([
+        Output(),
+        __metadata("design:type", EventEmitter)
+    ], TagComponent.prototype, "onBlur", void 0);
+    __decorate([
+        Output(),
+        __metadata("design:type", EventEmitter)
+    ], TagComponent.prototype, "onKeyDown", void 0);
+    __decorate([
+        Output(),
+        __metadata("design:type", EventEmitter)
+    ], TagComponent.prototype, "onTagEdited", void 0);
+    __decorate([
+        HostBinding('class.moving'),
+        __metadata("design:type", Boolean)
+    ], TagComponent.prototype, "moving", void 0);
+    __decorate([
+        ViewChild(TagRipple),
+        __metadata("design:type", TagRipple)
+    ], TagComponent.prototype, "ripple", void 0);
+    __decorate([
+        HostListener('keydown', ['$event']),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [Object]),
+        __metadata("design:returntype", void 0)
+    ], TagComponent.prototype, "keydown", null);
+    TagComponent = __decorate([
+        Component({
+            selector: 'tag',
+            templateUrl: './tag.template.html',
+            styleUrls: ['./tag-component.style.scss']
+        }),
+        __metadata("design:paramtypes", [ElementRef,
+            Renderer2,
+            ChangeDetectorRef])
+    ], TagComponent);
     return TagComponent;
 }());
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagComponent.prototype, "model", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Boolean)
-], TagComponent.prototype, "removable", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Boolean)
-], TagComponent.prototype, "editable", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", core_1.TemplateRef)
-], TagComponent.prototype, "template", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", String)
-], TagComponent.prototype, "displayBy", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", String)
-], TagComponent.prototype, "identifyBy", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], TagComponent.prototype, "index", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Boolean)
-], TagComponent.prototype, "hasRipple", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], TagComponent.prototype, "disabled", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], TagComponent.prototype, "onSelect", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], TagComponent.prototype, "onRemove", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], TagComponent.prototype, "onBlur", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], TagComponent.prototype, "onKeyDown", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", core_1.EventEmitter)
-], TagComponent.prototype, "onTagEdited", void 0);
-__decorate([
-    core_1.ViewChild(tag_1.TagRipple),
-    __metadata("design:type", tag_1.TagRipple)
-], TagComponent.prototype, "ripple", void 0);
-__decorate([
-    core_1.HostListener('keydown', ['$event']),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], TagComponent.prototype, "keydown", null);
-TagComponent = __decorate([
-    core_1.Component({
-        selector: 'tag',
-        templateUrl: './tag.template.html',
-        styleUrls: ['./tag-component.style.scss']
-    }),
-    __metadata("design:paramtypes", [core_1.ElementRef,
-        core_1.Renderer2,
-        core_1.ChangeDetectorRef])
-], TagComponent);
-exports.TagComponent = TagComponent;
+export { TagComponent };
 //# sourceMappingURL=tag.component.js.map

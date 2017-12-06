@@ -38,11 +38,13 @@ export declare class TagInputVirtualizedDropdown {
     readonly isVisible: boolean;
     onHide(): EventEmitter<Ng2Dropdown>;
     onItemClicked(): EventEmitter<string>;
-    readonly selectedItem: Ng2MenuItem;
+    readonly selectedItem: Ng2MenuItem | undefined;
     readonly state: any;
     show: () => void;
+    hide(): void;
     scrollListener(): void;
     private requestAdding;
+    private getFormValue();
     private createTagModel(item);
     private getMatchingItems(value);
     private setItems(items);
