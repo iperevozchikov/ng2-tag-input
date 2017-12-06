@@ -1,7 +1,7 @@
 <main>
     <div class="home-container">
         <div>
-            <h3>Tags accepting only items from an autocomplete using a remote endpoint</h3>
+            <h3>Tags accepting only items from an autocomplete using a remote endpoint with paging and virtualized dropdown</h3>
             <tag-input [ngModel]="[]"
                        [placeholder]="'Enter a new repo'"
                        [onTextChangeDebounce]="500"
@@ -9,6 +9,7 @@
                        [onlyFromAutocomplete]="true">
                 <tag-input-virtualized-dropdown
                     [autocompleteObservable]="requestAutocompleteItemsWithPagination"
+                    [totalOfItemsObservable]="totalOfItemsObservable"
                     [matchingFn]="matchingFn"
                 >
                     <ng-template let-item="item" let-index="index">

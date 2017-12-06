@@ -44,10 +44,18 @@ export class Home {
     dragAndDropStrings = ['CoffeScript', 'Scala.js'];
 
     public requestAutocompleteItemsWithPagination = (text: string, skip: number, limit: number): Observable<Response> => {
+        console.log(text, skip, limit);
         const url = `https://api.github.com/search/repositories?q=${text}&page=${skip / limit}&per_page=100`;
         return this.http
             .get(url)
             .map(data =>  data.json().items.concat(data.json().items).map((item, idx) => item.full_name + idx));
+    };
+
+    public totalOfItemsObservable = (text: string): Observable<number> => {
+        const url = `https://api.github.com/search/repositories?q=${text}&page=0&per_page=1`;
+        return this.http
+            .get(url)
+            .map(data => data.json()['total_count']);
     };
 
     public requestAutocompleteItems = (text: string): Observable<Response> => {
@@ -131,7 +139,7 @@ export class Home {
             const result: any = isNaN(value) ? {
                 isNan: true
             } : null;
-  
+
             setTimeout(() => {
                 resolve(result);
             }, 1);
