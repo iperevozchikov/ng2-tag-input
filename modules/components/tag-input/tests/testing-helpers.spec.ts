@@ -10,6 +10,7 @@ import {
 
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/filter';
@@ -181,11 +182,11 @@ export class TagInputComponentWithHooks {
     public items = getItems();
 
     public onAdding(tag): Observable<any> {
-        return;
+        return Observable.empty<any>();
     }
 
     public onRemoving(tag): Observable<any> {
-        return;
+        return Observable.empty<any>();
     }
 }
 

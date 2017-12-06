@@ -220,7 +220,7 @@ export class TagInputDropdown {
      * @name selectedItem
      * @returns {Ng2MenuItem}
      */
-    public get selectedItem(): Ng2MenuItem {
+    public get selectedItem(): Ng2MenuItem | undefined {
         return this.dropdown.menu.state.dropdownState.selectedItem;
     }
 

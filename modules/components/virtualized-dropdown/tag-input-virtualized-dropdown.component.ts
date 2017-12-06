@@ -23,6 +23,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/mergeMap';
+import { isNumber } from 'util';
 
 @Component({
     selector: 'tag-input-virtualized-dropdown',
@@ -209,9 +210,10 @@ export class TagInputVirtualizedDropdown {
                 this.vScroll
                     .end
                     .debounceTime(350)
+                    .filter((e: ChangeEvent) => isNumber(e.end))
                     .filter((e: ChangeEvent) => {
                         const autocompleteItemsCount = this.autocompleteItems.length - this.tagInput.items.length;
-                        const scrolled = Math.floor((e.end * 100) / autocompleteItemsCount);
+                        const scrolled = Math.floor((e.end! * 100) / autocompleteItemsCount);
 
                         return this.autocompleteItems.length > 0
                             && scrolled >= this.loadThresholdOfAutocompleteItems
@@ -267,7 +269,7 @@ export class TagInputVirtualizedDropdown {
      * @name selectedItem
      * @returns {Ng2MenuItem}
      */
-    public get selectedItem(): Ng2MenuItem {
+    public get selectedItem(): Ng2MenuItem | undefined {
         return this.dropdown.menu.state.dropdownState.selectedItem;
     }
 
@@ -284,22 +286,16 @@ export class TagInputVirtualizedDropdown {
      * @name show
      */
     public show = (): void => {
-        const value: string = this.tagInput.inputForm.value.value.trim();
+        const value = this.getFormValue();
+        const hasMinimumText: boolean = value.length >= this.minimumTextLength;
         const position: ClientRect = this.tagInput.inputForm.getElementPosition();
         const items: TagModel[] = this.getMatchingItems(value);
         const hasItems: boolean = items.length > 0;
+        const isHidden = this.isVisible === false;
         const showDropdownIfEmpty: boolean = this.showDropdownIfEmpty && hasItems && !value;
-        const hasMinimumText: boolean = value.length >= this.minimumTextLength;
 
-        const assertions: boolean[] = [
-            hasItems,
-            this.isVisible === false,
-            hasMinimumText
-        ];
-
-        const showDropdown: boolean = (assertions.filter(item => item).length === assertions.length) ||
-            showDropdownIfEmpty;
-        const hideDropdown: boolean = this.isVisible && (!hasItems || !hasMinimumText);
+        const shouldShow = isHidden && ((hasItems && hasMinimumText) || showDropdownIfEmpty);
+        const shouldHide = this.isVisible && (!hasItems || !hasMinimumText);
 
         // set items
         this.setItems(items);
@@ -318,11 +314,19 @@ export class TagInputVirtualizedDropdown {
             el.setAttribute('style', el.style.cssText + `height: ${newHeight} !important;`);
         }
 
-        if (showDropdown && !this.isVisible) {
+        if (shouldShow) {
             this.dropdown.show(position);
-        } else if (hideDropdown) {
-            this.dropdown.hide();
+        } else if (shouldHide) {
+            this.hide();
         }
+    }
+
+    /**
+     * @name hide
+     */
+    public hide(): void {
+        this.resetItems();
+        this.dropdown.hide();
     }
 
     /**
@@ -353,6 +357,13 @@ export class TagInputVirtualizedDropdown {
 
         // hide dropdown
         this.dropdown.hide();
+    }
+
+    /**
+     * @name getFormValue
+     */
+    private getFormValue(): string {
+        return this.tagInput.formValue.trim();
     }
 
     /**
