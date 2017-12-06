@@ -3,6 +3,7 @@
                        [appendToBody]="appendToBody"
                        [offset]="offset">
         <virtual-scroll
+            #scroll
             class="ng2-dropdown-vscroll"
             style="display: block; height: inherit;"
             [items]="items"
@@ -10,9 +11,9 @@
             [childHeight]="dropdownMenuItemHeight"
             [scrollbarWidth]="scrollbarWidth"
             [scrollbarHeight]="scrollbarHeight"
-            (update)="viewPortItems = $event"
+            (update)="scroll.viewPortItems = $event"
         >
-            <ng2-menu-item *ngFor="let item of viewPortItems; let index = index; let last = last"
+            <ng2-menu-item *ngFor="let item of scroll.viewPortItems; let index = index; let last = last"
                            [value]="item"
                            [ngSwitch]="!!templates.length">
 
@@ -22,7 +23,7 @@
 
                 <ng-template *ngSwitchDefault
                           [ngTemplateOutlet]="templates.first"
-                          [ngOutletContext]="{ item: item, index: index, last: last }">
+                          [ngTemplateOutletContext]="{ item: item, index: index, last: last }">
                 </ng-template>
             </ng2-menu-item>
         </virtual-scroll>
