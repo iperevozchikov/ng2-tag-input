@@ -77,13 +77,17 @@ const defaults: Type<TagInputOptions> = forwardRef(() => OptionsProvider.default
     animations
 })
 export class TagInputComponent extends TagInputAccessor implements OnInit, AfterViewInit {
-    @Input() public applyFocusOnClick = true;
+    @Input() public disableTagNavigationByKeydown: boolean = false;
 
-    @Input() public applyFocusOnAdd = true;
+    @Input() public disableTagRemovingByKeydown: boolean = false;
 
-    @Input() public applyFocusOnRemove = true;
+    @Input() public applyFocusOnClick: boolean = true;
 
-    @Input() public applyFocusOnLast = true;
+    @Input() public applyFocusOnAdd: boolean = true;
+
+    @Input() public applyFocusOnRemove: boolean = true;
+
+    @Input() public applyFocusOnLast: boolean = true;
 
     /**
      * @name separatorKeys
@@ -429,9 +433,9 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
         return this.tabindex !== '' ? '-1' : '';
     }
 
-    public get dropdown(): TagInputDropdown | TagInputVirtualizedDropdown {
+    public get dropdown(): TagInputDropdown | TagInputVirtualizedDropdown | undefined {
         if (!this._virtualizedDropdown && !this._dropdown) {
-            throw new Error('Dropdown is undefined');
+            return;
         }
 
         return this._virtualizedDropdown ? this._virtualizedDropdown : this._dropdown;
@@ -441,7 +445,6 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
      * @name animationMetadata
      */
     public animationMetadata: { value: string, params: object };
-
 
     constructor(private readonly renderer: Renderer2,
                 public readonly dragProvider: DragProvider) {
@@ -606,25 +609,33 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
         const event = data.event;
         const key = event.keyCode || event.which;
 
-        // switch (constants.KEY_PRESS_ACTIONS[key]) {
-        //     case constants.ACTIONS_KEYS.DELETE:
-        //         if (this.selectedTag && this.removable) {
-        //             const index = this.items.indexOf(this.selectedTag);
-        //             this.onRemoveRequested(this.selectedTag, index);
-        //         }
-        //         break;
-        //     case constants.ACTIONS_KEYS.SWITCH_PREV:
-        //         this.switchPrev(data.model);
-        //         break;
-        //     case constants.ACTIONS_KEYS.SWITCH_NEXT:
-        //         this.switchNext(data.model);
-        //         break;
-        //     case constants.ACTIONS_KEYS.TAB:
-        //         this.switchNext(data.model);
-        //         break;
-        //     default:
-        //         return;
-        // }
+        switch (constants.KEY_PRESS_ACTIONS[key]) {
+            case constants.ACTIONS_KEYS.DELETE:
+                if (!this.disableTagRemovingByKeydown) {
+                    if (this.selectedTag && this.removable) {
+                        const index = this.items.indexOf(this.selectedTag);
+                        this.onRemoveRequested(this.selectedTag, index);
+                    }
+                }
+                break;
+            case constants.ACTIONS_KEYS.SWITCH_PREV:
+                if (!this.disableTagNavigationByKeydown) {
+                    this.moveToTag(data.model, constants.PREV);
+                }
+                break;
+            case constants.ACTIONS_KEYS.SWITCH_NEXT:
+                if (!this.disableTagNavigationByKeydown) {
+                    this.moveToTag(data.model, constants.NEXT);
+                }
+                break;
+            case constants.ACTIONS_KEYS.TAB:
+                if (!this.disableTagNavigationByKeydown) {
+                    this.moveToTag(data.model, constants.NEXT);
+                }
+                break;
+            default:
+                return;
+        }
 
         // prevent default behaviour
         event.preventDefault();
@@ -1065,7 +1076,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
      * @return {undefined|TagModel}
      */
     private findDupe(tag: TagModel, isFromAutocomplete: boolean): TagModel | undefined {
-        const identifyBy = isFromAutocomplete ? this.dropdown.identifyBy : this.identifyBy;
+        const identifyBy = isFromAutocomplete && !!this.dropdown ? this.dropdown.identifyBy : this.identifyBy;
         const id = tag[identifyBy];
 
         return this.items.find(item => this.getItemValue(item) === id);
