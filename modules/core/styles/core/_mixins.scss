@@ -88,16 +88,19 @@
     &:not(.readonly):not(.tag--editing):focus {
         background: map-get($theme, 'background-focused');
         color: map-get($theme, 'color-focused');
+        box-shadow: map-get($theme, 'box-shadow');
     }
 
     &:not(.readonly):not(.tag--editing):active {
         background: map-get($theme, 'background-active');
         color: map-get($theme, 'color-active');
+        box-shadow: map-get($theme, 'box-shadow');
     }
 
     &:not(:focus):not(.tag--editing):not(:active):not(.readonly):hover {
         background: map-get($theme, 'background-hover');
         color: map-get($theme, 'color-hover');
+        box-shadow: map-get($theme, 'box-shadow');
     }
 
     &.readonly {
@@ -111,6 +114,7 @@
 
     &.tag--editing {
         background-color: map-get($theme, 'background-editing');
+        border: map-get($theme, 'border-editing');
         cursor: text;
     }
 }
@@ -128,6 +132,11 @@
 
     &:focus {
         outline: 0;
+    }
+
+    &[disabled=true] {
+        opacity: 0.5;
+        background: #fff;
     }
 }
 

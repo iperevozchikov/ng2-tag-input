@@ -1,7 +1,13 @@
 import { ControlValueAccessor } from '@angular/forms';
 import { Input } from '@angular/core';
+import { OptionsProvider } from './providers/options-provider';
+import { TagInputDropdown } from '../components/dropdown/tag-input-dropdown.component';
 
-export type TagModel = string | {[key: string]: any};
+export class TagModelClass {
+    [key: string]: any;
+}
+
+export type TagModel = string | TagModelClass;
 
 export function isObject(obj: any): boolean {
     return obj === Object(obj);
@@ -12,21 +18,21 @@ export class TagInputAccessor implements ControlValueAccessor {
     private _onTouchedCallback: () => void;
     private _onChangeCallback: (items: TagModel[]) => void;
 
+    public dropdown: TagInputDropdown;
+
     /**
      * @name displayBy
-     * @type {string}
      */
-    @Input() public displayBy: string = 'display';
+    @Input() public displayBy: string = OptionsProvider.defaults.tagInput.displayBy;
 
     /**
      * @name identifyBy
-     * @type {string}
      */
-    @Input() public identifyBy: string = 'value';
+    @Input() public identifyBy: string = OptionsProvider.defaults.tagInput.identifyBy;
 
     public get items(): TagModel[] {
         return this._items;
-    };
+    }
 
     public set items(items: TagModel[]) {
         this._items = items;
@@ -52,25 +58,26 @@ export class TagInputAccessor implements ControlValueAccessor {
     /**
      * @name getItemValue
      * @param item
-     * @return {TagModel}
+     * @param fromDropdown
      */
-    public getItemValue(item: TagModel): string {
-        return isObject(item) ? item[this.identifyBy] : item;
+    public getItemValue(item: TagModel, fromDropdown = false): string {
+        const property = fromDropdown && this.dropdown ? this.dropdown.identifyBy : this.identifyBy;
+        return isObject(item) ? item[property] : item;
     }
 
     /**
      * @name getItemDisplay
      * @param item
-     * @return {TagModel}
+     * @param fromDropdown
      */
-    public getItemDisplay(item: TagModel): string {
-        return isObject(item) ? item[this.displayBy] : item;
+    public getItemDisplay(item: TagModel, fromDropdown = false): string {
+        const property = fromDropdown && this.dropdown ? this.dropdown.displayBy : this.displayBy;
+        return isObject(item) ? item[property] : item;
     }
 
     /**
      * @name getItemsWithout
      * @param index
-     * @return {TagModel[]}
      */
     protected getItemsWithout(index: number): TagModel[] {
         return this.items.filter((item, position) => position !== index);

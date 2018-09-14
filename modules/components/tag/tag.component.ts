@@ -6,18 +6,19 @@ import {
     TemplateRef,
     ElementRef,
     HostListener,
+    HostBinding,
     ViewChild,
     ChangeDetectorRef,
     Renderer2
 } from '@angular/core';
 
-import { TagModel } from '../../core';
-import { TagRipple } from '../tag';
+import { TagModel } from '../../core/accessor';
+import { TagRipple } from '../tag/tag-ripple.component';
 
 // angular universal hacks
 /* tslint:disable-next-line */
-const KeyboardEvent = (global as any).KeyboardEvent;
-const MouseEvent = (global as any).MouseEvent;
+const KeyboardEvent = (window as any).KeyboardEvent;
+const MouseEvent = (window as any).MouseEvent;
 
 // mocking navigator
 const navigator = typeof window !== 'undefined' ? window.navigator : {
@@ -79,32 +80,32 @@ export class TagComponent {
     @Input() public disabled = false;
 
     /**
+     * @name canAddTag
+     */
+    @Input() public canAddTag: (tag: TagModel) => boolean;
+
+    /**
      * @name onSelect
-     * @type {EventEmitter<TagModel>}
      */
     @Output() public onSelect: EventEmitter<TagModel> = new EventEmitter<TagModel>();
 
     /**
      * @name onRemove
-     * @type {EventEmitter<TagModel>}
      */
     @Output() public onRemove: EventEmitter<TagModel> = new EventEmitter<TagModel>();
 
     /**
      * @name onBlur
-     * @type {EventEmitter<TagModel>}
      */
     @Output() public onBlur: EventEmitter<TagModel> = new EventEmitter<TagModel>();
 
     /**
      * @name onKeyDown
-     * @type {EventEmitter<any>}
      */
     @Output() public onKeyDown: EventEmitter<any> = new EventEmitter<any>();
 
     /**
      * @name onTagEdited
-     * @type {EventEmitter<any>}
      */
     @Output() public onTagEdited: EventEmitter<TagModel> = new EventEmitter<TagModel>();
 
@@ -116,14 +117,17 @@ export class TagComponent {
     };
 
     /**
-     * @name editModeActivated
-     * @type {boolean}
+     * @name editing
      */
-    public editModeActivated = false;
+    public editing = false;
+
+    /**
+     * @name moving
+     */
+    @HostBinding('class.moving') public moving: boolean;
 
     /**
      * @name rippleState
-     * @type {string}
      */
     public rippleState = 'none';
 
@@ -168,14 +172,18 @@ export class TagComponent {
         this.element.nativeElement.focus();
     }
 
+    public move(): void {
+        this.moving = true;
+    }
+
     /**
      * @name keydown
      * @param event
      */
     @HostListener('keydown', ['$event'])
     public keydown(event: KeyboardEvent): void {
-        if (this.editModeActivated) {
-            event.keyCode === 13 ? this.disableEditMode(event) : this.storeNewValue();
+        if (this.editing) {
+            event.keyCode === 13 ? this.disableEditMode(event) : undefined;
             return;
         }
 
@@ -196,17 +204,9 @@ export class TagComponent {
      * @name toggleEditMode
      */
     public toggleEditMode(): void {
-        const classList = this.element.nativeElement.classList;
-        const className = 'tag--editing';
-
-        if (this.editModeActivated) {
-            this.storeNewValue();
-        } else {
-            this.element.nativeElement.querySelector('[contenteditable]').focus();
+        if (this.editable) {
+            this.editing ? undefined : this.activateEditMode();
         }
-
-        this.editModeActivated = !this.editModeActivated;
-        this.editModeActivated ? classList.add(className) : classList.remove(className);
     }
 
     /**
@@ -216,19 +216,22 @@ export class TagComponent {
     public onBlurred(event: any): void {
         // Checks if it is editable first before handeling the onBlurred event in order to prevent
         // a bug in IE where tags are still editable with onlyFromAutocomplete set to true
-		if (this.editable) {
-			const newValue: string = event.target.innerText;
-			this.toggleEditMode();
-			const result = typeof this.model === 'string' ? newValue :
-				{[this.identifyBy]: newValue, [this.displayBy]: newValue};
-			this.onBlur.emit(result);
-		}
+		if (!this.editable) {
+            return;
+        }
+
+        this.disableEditMode();
+
+        const value: string = event.target.innerText;
+        const result = typeof this.model === 'string' ? value :
+            {...this.model, [this.displayBy]: value};
+
+        this.onBlur.emit(result);
     }
 
     /**
      * @name getDisplayValue
      * @param item
-     * @returns {string}
      */
     public getDisplayValue(item: TagModel): string {
         return typeof item === 'string' ? item : item[this.displayBy];
@@ -238,66 +241,116 @@ export class TagComponent {
      * @desc returns whether the ripple is visible or not
      * only works in Chrome
      * @name isRippleVisible
-     * @returns {boolean}
      */
-    public isRippleVisible(): boolean {
+    public get isRippleVisible(): boolean {
         return !this.readonly &&
-            !this.editModeActivated &&
+            !this.editing &&
             isChrome &&
             this.hasRipple;
-    }
-
-    /**
-     * @name getContentEditableText
-     * @returns {string}
-     */
-    private getContentEditableText(): string {
-        return this.element.nativeElement.querySelector('[contenteditable]').innerText.trim();
     }
 
     /**
      * @name disableEditMode
      * @param $event
      */
-    private disableEditMode($event: KeyboardEvent): void {
-        this.editModeActivated = false;
-        $event.preventDefault();
-
-        this.cdRef.detectChanges();
-    }
-
-    /**
-     * @name storeNewValue
-     */
-    private storeNewValue(): void {
+    public disableEditMode($event?: KeyboardEvent): void {
+        const classList = this.element.nativeElement.classList;
         const input = this.getContentEditableText();
 
-        const exists = (model: TagModel) => {
-            return typeof model === 'string' ?
-                model === input :
-                model[this.identifyBy] === input;
-        };
+        this.editing = false;
+        classList.remove('tag--editing');
 
-        // if the value changed, replace the value in the model
-        if (exists(this.model)) {
-            const itemValue = this.model[this.identifyBy];
+        if (!input) {
+            this.setContentEditableText(this.model);
+            return;
+        }
 
-            this.model = typeof this.model === 'string' ? input :
-                {[this.identifyBy]: itemValue, [this.displayBy]: itemValue};
+        this.storeNewValue(input);
+        this.cdRef.detectChanges();
 
-            // emit output
-            this.onTagEdited.emit(this.model);
+        if ($event) {
+            $event.preventDefault();
         }
     }
 
     /**
      * @name isDeleteIconVisible
-     * @returns {boolean}
      */
-    private isDeleteIconVisible(): boolean {
+    public isDeleteIconVisible(): boolean {
         return !this.readonly &&
-                !this.disabled &&
-                this.removable &&
-                !this.editModeActivated;
+            !this.disabled &&
+            this.removable &&
+            !this.editing;
+    }
+
+    /**
+     * @name getContentEditableText
+     */
+    private getContentEditableText(): string {
+        const input = this.getContentEditable();
+
+        return input ? input.innerText.trim() : '';
+    }
+
+    /**
+     * @name setContentEditableText
+     * @param model
+     */
+    private setContentEditableText(model: TagModel) {
+        const input = this.getContentEditable();
+        const value = this.getDisplayValue(model);
+
+        input.innerText = value;
+    }
+
+    /**
+     * @name
+     */
+    private activateEditMode(): void {
+        const classList = this.element.nativeElement.classList;
+        classList.add('tag--editing');
+
+        this.editing = true;
+    }
+
+    /**
+     * @name storeNewValue
+     * @param input
+     */
+    private storeNewValue(input: string): void {
+        const exists = (tag: TagModel) => {
+            return typeof tag === 'string' ?
+            tag === input :
+            tag[this.displayBy] === input;
+        };
+
+        const hasId = () => {
+            return this.model[this.identifyBy] !== this.model[this.displayBy];
+        };
+
+        // if the value changed, replace the value in the model
+        if (exists(this.model)) {
+            return;
+        }
+
+        const model = typeof this.model === 'string' ? input :
+            {
+                index: this.index,
+                [this.identifyBy]: hasId() ? this.model[this.identifyBy] : input,
+                [this.displayBy]: input,
+            };
+
+        if (this.canAddTag(model)) {
+            this.onTagEdited.emit({tag: model, index: this.index});
+        } else {
+            this.setContentEditableText(this.model);
+        }
+    }
+
+    /**
+     * @name getContentEditable
+     */
+    private getContentEditable(): HTMLInputElement {
+        return this.element.nativeElement.querySelector('[contenteditable]');
     }
 }

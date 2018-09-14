@@ -1,116 +1,80 @@
-import {
-    Component,
-    Input,
-    Output,
-    EventEmitter,
-    ViewChild
-} from '@angular/core';
-
-import {
-    FormGroup,
-    FormControl,
-    Validators,
-    ValidatorFn,
-    AbstractControl,
-    AsyncValidatorFn
-} from '@angular/forms';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {AsyncValidatorFn, FormControl, FormGroup, ValidatorFn} from '@angular/forms';
 
 @Component({
     selector: 'tag-input-form',
-    styleUrls: [ './tag-input-form.style.scss' ],
+    styleUrls: ['./tag-input-form.style.scss'],
     templateUrl: './tag-input-form.template.html'
 })
-export class TagInputForm {
+export class TagInputForm implements OnInit, OnChanges {
     /**
      * @name onSubmit
-     * @type {EventEmitter}
      */
     @Output() public onSubmit: EventEmitter<any> = new EventEmitter();
 
     /**
      * @name onBlur
-     * @type {EventEmitter}
      */
     @Output() public onBlur: EventEmitter<any> = new EventEmitter();
 
     /**
      * @name onFocus
-     * @type {EventEmitter}
      */
     @Output() public onFocus: EventEmitter<any> = new EventEmitter();
 
     /**
      * @name onKeyup
-     * @type {EventEmitter}
      */
     @Output() public onKeyup: EventEmitter<any> = new EventEmitter();
 
     /**
      * @name onKeydown
-     * @type {EventEmitter}
      */
     @Output() public onKeydown: EventEmitter<any> = new EventEmitter();
+
+    /**
+     * @name inputTextChange
+     */
+    @Output() public inputTextChange: EventEmitter<string> = new EventEmitter();
 
     // inputs
 
     /**
      * @name placeholder
-     * @type {string}
      */
     @Input() public placeholder: string;
 
     /**
      * @name validators
-     * @type {ValidatorFn[]}
      */
     @Input() public validators: ValidatorFn[] = [];
 
     /**
      * @name asyncValidators
      * @desc array of AsyncValidator that are used to validate the tag before it gets appended to the list
-     * @type {Array}
      */
     @Input() public asyncValidators: AsyncValidatorFn[] = [];
 
     /**
      * @name inputId
-     * @type {string}
      */
     @Input() public inputId: string;
 
     /**
      * @name inputClass
-     * @type {string}
      */
     @Input() public inputClass: string;
 
     /**
-     * @name inputText
-     */
-    @Input() public get inputText(): string {
-        return this.inputTextValue;
-    }
-
-    /**
      * @name tabindex
      * @desc pass through the specified tabindex to the input
-     * @type {string}
      */
-    @Input() public tabindex: string = undefined;
+    @Input() public tabindex = '';
 
     /**
      * @name disabled
      */
     @Input() public disabled = false;
-
-    /**
-     * @name inputText
-     * @param text {string}
-     */
-    public set inputText(text: string) {
-        this.inputTextValue = text;
-        this.inputTextChange.emit(text);
-    }
 
     /**
      * @name input
@@ -123,50 +87,64 @@ export class TagInputForm {
     public form: FormGroup;
 
     /**
-     * @name inputTextChange
-     * @type {EventEmitter}
+     * @name inputText
      */
-    @Output() public inputTextChange: EventEmitter<string> = new EventEmitter();
+    @Input()
+    public get inputText(): string {
+        return this.item.value;
+    }
 
     /**
-     * @name inputTextValue
+     * @name inputText
+     * @param text {string}
      */
-    public inputTextValue = '';
+    public set inputText(text: string) {
+        this.item.setValue(text);
 
-    constructor() {}
+        this.inputTextChange.emit(text);
+    }
 
-    public ngOnInit() {
+    private readonly item: FormControl = new FormControl({value: '', disabled: this.disabled});
+
+    ngOnInit() {
+        this.item.setValidators(this.validators);
+        this.item.setAsyncValidators(this.asyncValidators);
+
         // creating form
         this.form = new FormGroup({
-            item: new FormControl('',
-                Validators.compose(this.validators),
-                Validators.composeAsync(this.asyncValidators)
-            )
+            item: this.item
         });
     }
 
-	/**
-     * @name value
-     * @returns {AbstractControl}
-     */
-    public get value(): AbstractControl {
-        return this.form.get('item');
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes.disabled && !changes.disabled.firstChange) {
+            if (changes.disabled.currentValue) {
+                this.form.controls['item'].disable();
+            } else {
+                this.form.controls['item'].enable();
+            }
+        }
     }
 
-	/**
+    /**
+     * @name value
+     */
+    public get value(): FormControl {
+        return this.form.get('item') as FormControl;
+    }
+
+    /**
      * @name isInputFocused
-     * @returns {boolean}
      */
     public isInputFocused(): boolean {
         return document.activeElement === this.input.nativeElement;
     }
 
-	/**
+    /**
      * @name getErrorMessages
      * @param messages
-     * @returns {string[]}
      */
-    public getErrorMessages(messages): string[] {
+    public getErrorMessages(messages: { [key: string]: string }): string[] {
         return Object.keys(messages)
             .filter(err => this.value.hasError(err))
             .map(err => messages[err]);
@@ -174,15 +152,13 @@ export class TagInputForm {
 
     /**
      * @name hasErrors
-     * @returns {boolean}
      */
     public hasErrors(): boolean {
-        return this.form.dirty &&
-            this.form.value.item &&
-            this.form.invalid;
+        const {dirty, value, valid} = this.form;
+        return dirty && value.item && !valid;
     }
 
-	/**
+    /**
      * @name focus
      */
     public focus(): void {
@@ -196,9 +172,8 @@ export class TagInputForm {
         this.input.nativeElement.blur();
     }
 
-	/**
+    /**
      * @name getElementPosition
-     * @returns {ClientRect}
      */
     public getElementPosition(): ClientRect {
         return this.input.nativeElement.getBoundingClientRect();
@@ -218,13 +193,31 @@ export class TagInputForm {
      * @param $event
      */
     public onKeyDown($event) {
+        this.inputText = this.value.value;
+        if ($event.key === 'Enter') {
+            this.submit($event);
+
+            this.inputText = '';
+        }
         return this.onKeydown.emit($event);
+    }
+
+    /**
+     * @name onKeyUp
+     * @param $event
+     */
+    public onKeyUp($event) {
+        this.inputText = this.value.value;
+        return this.onKeyup.emit($event);
     }
 
     /**
      * @name submit
      */
     public submit($event: any): void {
-        this.onSubmit.emit($event);
+        $event.preventDefault();
+        if (this.form.valid) {
+            this.onSubmit.emit($event);
+        }
     }
 }

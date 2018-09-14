@@ -1,14 +1,14 @@
 <!-- form -->
-<form (submit)="submit($event)" [formGroup]="form">
+<form (ngSubmit)="submit($event)" [formGroup]="form">
     <input #input
 
            type="text"
            class="ng2-tag-input__text-input"
            autocomplete="off"
-           tabindex="{{ disabled ? -1 : 0 }}"
+           tabindex="{{ disabled ? -1 : tabindex ? tabindex : 0 }}"
+           minlength="1"
+           formControlName="item"
 
-           [(ngModel)]="inputText"
-           [formControlName]="'item'"
            [ngClass]="inputClass"
            [attr.id]="inputId"
            [attr.placeholder]="placeholder"
@@ -19,6 +19,6 @@
            (focus)="onFocus.emit($event)"
            (blur)="onBlur.emit($event)"
            (keydown)="onKeyDown($event)"
-           (keyup)="onKeyup.emit($event)"
+           (keyup)="onKeyUp($event)"
     />
 </form>

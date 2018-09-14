@@ -1,19 +1,17 @@
 import { Component } from '@angular/core';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import {
     Validators,
     FormControl
 } from '@angular/forms';
 
-import { NgModule } from '@angular/core';
-import { TagInputModule } from 'modules';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
+import { of } from 'rxjs';
 
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/filter';
+import { TagInputModule } from '../../../tag-input.module';
 
 function getItems() {
     return ['Javascript', 'Typescript'];
@@ -73,32 +71,27 @@ export class TagInputComponentCustomTagsAsObjects {
     selector: 'test-app',
     template: `<tag-input
                   [(ngModel)]="items"
-                  [validators]="validators"
-                  (onRemove)="onRemove($event)"
-                  (onAdd)="onAdd($event)">
+                  [validators]="validators">
               </tag-input>`
 })
 export class TagInputComponentWithValidation {
     public items = getItems();
     validators: any = validators;
-    onAdd() {}
-    onRemove() {}
 }
 
 @Component({
     selector: 'test-app',
     template: `<tag-input [(ngModel)]="items"
-                          [validators]="validators"
-                          [transform]="addPrefix">
+                          [onAdding]="onAdding">
                          </tag-input>`
 })
 export class TagInputComponentWithTransformer {
     public items = getItems();
 
-    addPrefix(item: string) {
-        return `prefix: ${item}`;
+    onAdding(value: string): Observable<object> {
+        const item = {display: `prefix: ${value}`, value: `prefix: ${value}`};
+        return of(item);
     }
-    validators: any = validators.splice(0, 1);
 }
 
 @Component({
@@ -116,7 +109,6 @@ export class TagInputComponentWithPlaceholder {
 export class TagInputComponentWithMaxItems {
     public items = getItems();
 }
-
 
 @Component({
     selector: 'test-app',
@@ -177,7 +169,7 @@ export class TagInputComponentWithAddOnBlur {
 
 @Component({
     selector: 'test-app',
-    template: `<tag-input [(ngModel)]="items" 
+    template: `<tag-input [(ngModel)]="items"
                           [onRemoving]="onRemoving"
                           [onAdding]="onAdding"></tag-input>`
 })
@@ -185,11 +177,11 @@ export class TagInputComponentWithHooks {
     public items = getItems();
 
     public onAdding(tag): Observable<any> {
-        return;
+        return of({});
     }
 
     public onRemoving(tag): Observable<any> {
-        return;
+        return of({});
     }
 }
 
@@ -212,7 +204,7 @@ const COMPONENTS = [
 
 @NgModule({
     imports: [CommonModule, FormsModule, TagInputModule],
-    declarations: [...COMPONENTS],
-    exports: [...COMPONENTS]
+    declarations: COMPONENTS,
+    exports: COMPONENTS
 })
 export class TestModule {}

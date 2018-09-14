@@ -1,12 +1,9 @@
 import {Component} from '@angular/core';
 
-import { FormControl } from '@angular/forms';
-import { Http, Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
-
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/mapTo';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {Http, Response} from '@angular/http';
+import {filter, map} from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
 
 @Component({
     selector: 'app',
@@ -14,7 +11,14 @@ import 'rxjs/add/operator/mapTo';
     templateUrl: './home.html'
 })
 export class Home {
-    constructor(private http: Http) {}
+    form: FormGroup;
+
+    constructor(private http: Http) {
+        this.form = new FormBuilder().group({
+            chips: [['chip'], []]
+        });
+    }
+
     disabled = true;
 
     items = ['Javascript', 'Typescript'];
@@ -23,7 +27,7 @@ export class Home {
 
     itemsAsObjects = [{id: 0, name: 'Angular', readonly: true}, {id: 1, name: 'React'}];
 
-    autocompleteItems = ['Item1', 'item2', 'item3'];
+    autocompleteItems = ['Javascript', 'Typescript', 'Rust', 'Go'];
 
     autocompleteItemsAsObjects = [
         {value: 'Item1', id: 0, extra: 0},
@@ -36,18 +40,17 @@ export class Home {
     dragAndDropObjects = [{display: 'Javascript', value: 'Javascript'}, {display: 'Typescript', value: 'Typescript'}];
     dragAndDropStrings = ['CoffeScript', 'Scala.js'];
 
-    public requestAutocompleteItemsWithPagination = (text: string, skip: number, limit: number): Observable<Response> => {
-        const url = `https://api.github.com/search/repositories?q=${text}&page=${skip / limit}&per_page=100`;
+    public requestAutocompleteItems = (text: string): Observable<Response> => {
+        const url = `https://api.github.com/search/repositories?q=${text}`;
         return this.http
             .get(url)
-            .map(data =>  data.json().items.concat(data.json().items).map((item, idx) => item.full_name + idx));
+            .pipe(map(data => data.json().items.map(item => item.full_name)));
     };
 
-    public requestAutocompleteItems = (text: string): Observable<Response> => {
-        const url = `https://api.github.com/search/repositories?q=${text}&per_page=100`;
-        return this.http
-            .get(url)
-            .map(data =>  data.json().items.concat(data.json().items).map((item, idx) => item.full_name + idx));
+    public requestAutocompleteItemsFake = (text: string): Observable<string[]> => {
+        return of([
+            'item1', 'item2', 'item3'
+        ]);
     };
 
     public options = {
@@ -80,15 +83,16 @@ export class Home {
     }
 
     public onTagEdited(item) {
-        console.log('input blurred: current value is ' + item);
+        console.log('tag edited: current value is ' + item);
     }
 
     public onValidationError(item) {
         console.log('invalid tag ' + item);
     }
 
-    public transform(item: string): string {
-        return `@${item}`;
+    public transform(value: string): Observable<object> {
+        const item = {display: `@${value}`, value: `@${value}`};
+        return of(item);
     }
 
     private startsWithAt(control: FormControl) {
@@ -111,7 +115,26 @@ export class Home {
         return null;
     }
 
+    private validateAsync(control: FormControl): Promise<any> {
+        return new Promise(resolve => {
+            const value = control.value;
+            const result: any = isNaN(value) ? {
+                isNan: true
+            } : null;
+
+            setTimeout(() => {
+                resolve(result);
+            }, 400);
+        });
+    }
+
+    public asyncErrorMessages = {
+        isNan: 'Please only add numbers'
+    };
+
     public validators = [this.startsWithAt, this.endsWith$];
+
+    public asyncValidators = [this.validateAsync];
 
     public errorMessages = {
         'startsWithAt@': 'Your items need to start with \'@\'',
@@ -120,21 +143,27 @@ export class Home {
 
     public onAdding(tag): Observable<any> {
         const confirm = window.confirm('Do you really want to add this tag?');
-        return Observable
-            .of(undefined)
-            .filter(() => confirm)
-            .mapTo(tag);
+        return of(tag)
+            .pipe(filter(() => confirm));
     }
 
     public onRemoving(tag): Observable<any> {
         const confirm = window.confirm('Do you really want to remove this tag?');
-        return Observable
-            .of(undefined)
-            .filter(() => confirm)
-            .mapTo(tag);
+        return of(tag)
+            .pipe(filter(() => confirm));
     }
 
-    matchingFn(): boolean {
-        return true;
+    public asyncOnAdding(tag): Observable<any> {
+        const confirm = window.confirm('Do you really want to add this tag?');
+        return of(tag)
+            .pipe(filter(() => confirm));
+    }
+
+    public insertInputTag(): void {
+        if (this.inputText) {
+            this.items.push(this.inputText);
+
+            this.inputText = '';
+        }
     }
 }
