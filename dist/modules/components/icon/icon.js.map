@@ -1,1 +1,0 @@
-{"version":3,"file":"icon.js","sourceRoot":"","sources":["../../../../modules/components/icon/icon.ts"],"names":[],"mappings":";;;;;;AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,eAAe,CAAC;AAO1C;IAAA;IAAkC,CAAC;IAAtB,mBAAmB;QAL/B,SAAS,CAAC;YACP,QAAQ,EAAE,aAAa;YACvB,WAAW,EAAE,aAAa;YAC1B,SAAS,EAAE,CAAC,aAAa,CAAC;SAC7B,CAAC;OACW,mBAAmB,CAAG;IAAD,0BAAC;CAAA,AAAnC,IAAmC;SAAtB,mBAAmB"}
