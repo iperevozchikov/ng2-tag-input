@@ -1,6 +1,6 @@
 import { EventEmitter, TemplateRef, ElementRef, ChangeDetectorRef, Renderer2 } from '@angular/core';
-import { TagModel } from '../../core';
-import { TagRipple } from '../tag';
+import { TagModel } from '../../core/accessor';
+import { TagRipple } from '../tag/tag-ripple.component';
 export declare class TagComponent {
     element: ElementRef;
     renderer: Renderer2;
@@ -14,27 +14,33 @@ export declare class TagComponent {
     index: number;
     hasRipple: boolean;
     disabled: boolean;
+    canAddTag: (tag: TagModel) => boolean;
     onSelect: EventEmitter<TagModel>;
     onRemove: EventEmitter<TagModel>;
     onBlur: EventEmitter<TagModel>;
     onKeyDown: EventEmitter<any>;
     onTagEdited: EventEmitter<TagModel>;
     readonly readonly: boolean;
-    editModeActivated: boolean;
+    editing: boolean;
+    moving: boolean;
     rippleState: string;
     ripple: TagRipple;
     constructor(element: ElementRef, renderer: Renderer2, cdRef: ChangeDetectorRef);
     select($event?: MouseEvent): void;
     remove($event: MouseEvent): void;
     focus(): void;
+    move(): void;
     keydown(event: KeyboardEvent): void;
     blink(): void;
     toggleEditMode(): void;
     onBlurred(event: any): void;
     getDisplayValue(item: TagModel): string;
-    isRippleVisible(): boolean;
+    readonly isRippleVisible: boolean;
+    disableEditMode($event?: KeyboardEvent): void;
+    isDeleteIconVisible(): boolean;
     private getContentEditableText();
-    private disableEditMode($event);
-    private storeNewValue();
-    private isDeleteIconVisible();
+    private setContentEditableText(model);
+    private activateEditMode();
+    private storeNewValue(input);
+    private getContentEditable();
 }

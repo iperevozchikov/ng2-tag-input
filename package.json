@@ -73,7 +73,8 @@
     "zone.js": "0.8.26"
   },
   "dependencies": {
-    "ng2-material-dropdown": "0.10.1"
+    "angular2-virtual-scroll": "^0.4.12",
+    "ng2-material-dropdown": "github:iperevozchikov/ng2-material-dropdown#fix-hardcoded-menu-item-hierarchy-sync-upstream-master"
   },
   "peerDependencies": {
     "@angular/animations": "^6.0.0",
@@ -107,7 +108,8 @@
       }
     },
     "whitelistedNonPeerDependencies": [
-      "ng2-material-dropdown"
+      "ng2-material-dropdown",
+      "angular2-virtual-scroll"
     ]
   }
 }

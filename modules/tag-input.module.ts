@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule, FormsModule, COMPOSITION_BUFFER_MODE } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Ng2DropdownModule } from 'ng2-material-dropdown';
+import { VirtualScrollModule } from 'angular2-virtual-scroll';
+
 import { HighlightPipe } from './core/pipes/highlight.pipe';
 import { DragProvider } from './core/providers/drag-provider';
 import { OptionsProvider, Options } from './core/providers/options-provider';
@@ -10,6 +12,9 @@ import { DeleteIconComponent } from './components/icon/icon';
 import { TagInputForm } from './components/tag-input-form/tag-input-form.component';
 import { TagComponent } from './components/tag/tag.component';
 import { TagInputDropdown } from './components/dropdown/tag-input-dropdown.component';
+import {
+    TagInputVirtualizedDropdown
+} from './components/virtualized-dropdown/tag-input-virtualized-dropdown.component';
 import { TagRipple } from './components/tag/tag-ripple.component';
 
 const optionsProvider = new OptionsProvider();
@@ -19,7 +24,8 @@ const optionsProvider = new OptionsProvider();
         CommonModule,
         ReactiveFormsModule,
         FormsModule,
-        Ng2DropdownModule
+        Ng2DropdownModule,
+        VirtualScrollModule
     ],
     declarations: [
         TagInputComponent,
@@ -28,6 +34,7 @@ const optionsProvider = new OptionsProvider();
         TagComponent,
         HighlightPipe,
         TagInputDropdown,
+        TagInputVirtualizedDropdown,
         TagRipple
     ],
     exports: [
@@ -37,6 +44,7 @@ const optionsProvider = new OptionsProvider();
         TagComponent,
         HighlightPipe,
         TagInputDropdown,
+        TagInputVirtualizedDropdown,
         TagRipple
     ],
     providers: [

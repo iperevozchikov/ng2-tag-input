@@ -1,2 +1,2 @@
-import { AnimationEntryMetadata } from '@angular/core';
-export declare const animations: AnimationEntryMetadata[];
+import { AnimationTriggerMetadata } from '@angular/animations';
+export declare const animations: AnimationTriggerMetadata[];

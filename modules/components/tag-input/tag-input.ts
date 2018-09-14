@@ -381,8 +381,8 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
         return this.tabindex !== '' ? '-1' : '';
     }
 
-    public get dropdown(): TagInputDropdown | TagInputVirtualizedDropdown | undefined {
-        return !this._virtualizedDropdown ? (!this._dropdown ? undefined : this._dropdown) : this._virtualizedDropdown;
+    public get dropdown(): TagInputDropdown | TagInputVirtualizedDropdown {
+        return !this._virtualizedDropdown ? this._dropdown : this._virtualizedDropdown;
     }
 
     /**
@@ -616,7 +616,7 @@ export class TagInputComponent extends TagInputAccessor implements OnInit, After
     public async onFormSubmit() {
         try {
             await this.onAddingRequested(false, this.formValue);
-        } catch {
+        } catch (err) {
             return;
         }
     }

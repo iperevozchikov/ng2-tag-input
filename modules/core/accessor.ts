@@ -2,6 +2,9 @@ import { ControlValueAccessor } from '@angular/forms';
 import { Input } from '@angular/core';
 import { OptionsProvider } from './providers/options-provider';
 import { TagInputDropdown } from '../components/dropdown/tag-input-dropdown.component';
+import {
+    TagInputVirtualizedDropdown
+} from '../components/virtualized-dropdown/tag-input-virtualized-dropdown.component';
 
 export class TagModelClass {
     [key: string]: any;
@@ -18,7 +21,7 @@ export class TagInputAccessor implements ControlValueAccessor {
     private _onTouchedCallback: () => void;
     private _onChangeCallback: (items: TagModel[]) => void;
 
-    public dropdown: TagInputDropdown;
+    public dropdown: TagInputDropdown | TagInputVirtualizedDropdown | undefined;
 
     /**
      * @name displayBy

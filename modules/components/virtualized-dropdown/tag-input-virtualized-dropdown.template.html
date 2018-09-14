@@ -1,5 +1,6 @@
-<ng2-dropdown>
+<ng2-dropdown [dynamicUpdate]="dynamicUpdate">
     <ng2-dropdown-menu [focusFirstElement]="focusFirstElement"
+                       [zIndex]="zIndex"
                        [appendToBody]="appendToBody"
                        [offset]="offset">
         <virtual-scroll
@@ -22,7 +23,7 @@
 
                 <ng-template *ngSwitchDefault
                           [ngTemplateOutlet]="templates.first"
-                          [ngOutletContext]="{ item: item, index: index, last: last }">
+                          [ngTemplateOutletContext]="{ item: item, index: index, last: last }">
                 </ng-template>
             </ng2-menu-item>
         </virtual-scroll>
