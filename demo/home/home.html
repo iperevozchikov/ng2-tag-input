@@ -338,5 +338,24 @@
                 </tag-input-dropdown>
             </tag-input>
         </div>
+
+        <div>
+            <h3>Autocomplete items using virtualized dropdown</h3>
+            <tag-input [ngModel]="[]"
+                       [placeholder]="'Enter a new repo'"
+                       [onTextChangeDebounce]="500"
+                       [secondaryPlaceholder]="'Search in Github'"
+                       [onlyFromAutocomplete]="true">
+                <tag-input-virtualized-dropdown
+                    [keepOpen]="false"
+                    [minimumTextLength]="0"
+                    [autocompleteObservable]="requestAutocompleteItemsWithPagination"
+                    [totalOfItemsObservable]="totalAutocompleteItemsWithPagination"
+                    [loadThresholdOfAutocompleteItems]="50"
+                    [displayBy]="'name'"
+                    [identifyBy]="'id'">
+                </tag-input-virtualized-dropdown>
+            </tag-input>
+        </div>
     </div>
 </main>

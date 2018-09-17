@@ -2,15 +2,6 @@
   "name": "ngx-chips",
   "version": "1.9.7",
   "description": "Tag Input component for Angular",
-  "scripts": {
-    "release": "npm run build && npm publish dist",
-    "postrelease": "rm -rf dist",
-    "build": "ng-packagr -p package.json && mkdir ./dist/dist && cp -R ./modules/core/styles ./dist/core/styles && cp ./dist/bundles/ngx-chips.umd.js ./dist/dist/ngx-chips.bundle.js",
-    "server": "webpack-dev-server --config webpack.demo.js --inline --colors --progress --port 3010 --content-base demo",
-    "start": "npm run server",
-    "test": "karma start karma.conf.js",
-    "codecov": "codecov"
-  },
   "author": {
     "name": "Giancarlo Buomprisco",
     "email": "giancarlopsk@gmail.com"
@@ -74,7 +65,8 @@
   },
   "dependencies": {
     "angular2-virtual-scroll": "^0.4.12",
-    "ng2-material-dropdown": "github:iperevozchikov/ng2-material-dropdown#fix-hardcoded-menu-item-hierarchy-sync-upstream-master"
+    "ng2-material-dropdown": "github:iperevozchikov/ng2-material-dropdown#fix-hardcoded-menu-item-hierarchy-sync-upstream-master",
+    "tslib": "^1.9.0"
   },
   "peerDependencies": {
     "@angular/animations": "^6.0.0",
@@ -99,22 +91,9 @@
   },
   "homepage": "https://github.com/Gbuomprisco/ngx-chips",
   "$schema": "./node_modules/ng-packagr/package.schema.json",
-  "main": "./dist/bundles/ngx-chips.umd.js",
-  "module": "./dist/esm5/ngx-chips.js",
-  "es2015": "./dist/esm2015/ngx-chips.js",
-  "typings": "./dist/ngx-chips.d.ts",
-  "metadata": "./dist/ngx-chips.metadata.json",
-  "ngPackage": {
-    "$schema": "./node_modules/ng-packagr/ng-package.schema.json",
-    "lib": {
-      "entryFile": "modules/index.ts",
-      "externals": {
-        "ng2-material-dropdown": "ng2-material-dropdown"
-      }
-    },
-    "whitelistedNonPeerDependencies": [
-      "ng2-material-dropdown",
-      "angular2-virtual-scroll"
-    ]
-  }
+  "main": "bundles/ngx-chips.umd.js",
+  "module": "esm5/ngx-chips.js",
+  "es2015": "esm2015/ngx-chips.js",
+  "typings": "ngx-chips.d.ts",
+  "metadata": "ngx-chips.metadata.json"
 }

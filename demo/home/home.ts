@@ -53,6 +53,20 @@ export class Home {
         ]);
     };
 
+    public requestAutocompleteItemsWithPagination = (text: string, skip: number, limit: number): Observable<Array<object>> => {
+        const url = `https://api.github.com/search/repositories?q=${text}&page=${skip / limit}&per_page=100`;
+        return this.http
+            .get(url)
+            .pipe(map(data => data.json().items.map((item, idx) => item.name + idx)));
+    };
+
+    public totalAutocompleteItemsWithPagination = (text: string): Observable<number> => {
+        const url = `https://api.github.com/search/repositories?q=${text}`;
+        return this.http
+            .get(url)
+            .pipe(map(data => data.json().total_count));
+    };
+
     public options = {
         readonly: undefined,
         placeholder: '+ Tag'
